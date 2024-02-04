@@ -6,7 +6,7 @@ import (
 )
 
 func AddURL(m map[string]string, url string) string {
-	for id := randomId(); true; id = randomId() {
+	for id := randomID(); true; id = randomID() {
 		if _, exist := m[id]; !exist {
 			m[id] = url
 			return id
@@ -19,26 +19,26 @@ func GetURL(m map[string]string, id string) (string, error) {
 	if url, ok := m[id]; ok {
 		return url, nil
 	} else {
-		return "", errors.New("No URL with this ID")
+		return "", errors.New("no URL with this ID")
 	}
 }
 
 const (
-	UPPERCASE_A = 65
-	LOWERCASE_A = 97
-	ID_LEN = 5
-	LETTERS_COUNT = 26
+	UppercaseA = 65
+	LowercaseA = 97
+	IdLen = 5
+	LettersCount = 26
 )
 
-func randomId() string {
+func randomID() string {
 	var chars []byte
-	for i := 0; i < ID_LEN; i++ {
+	for i := 0; i < IdLen; i++ {
 		uppercase := rand.Intn(2)
-		letter := rand.Intn(LETTERS_COUNT)
+		letter := rand.Intn(LettersCount)
 		if uppercase == 0 {
-			letter += LOWERCASE_A
+			letter += LowercaseA
 		} else {
-			letter += UPPERCASE_A
+			letter += UppercaseA
 		}
 		chars = append(chars, byte(letter))
 	}

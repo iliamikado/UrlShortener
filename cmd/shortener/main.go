@@ -42,9 +42,9 @@ func postURL(w http.ResponseWriter, r *http.Request) {
 	if r.TLS != nil {
 		scheme = "https"
 	}
-	shortUrl := scheme + "://" + r.Host + "/" + id
+	shortURL := scheme + "://" + r.Host + "/" + id
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(shortUrl))
+	w.Write([]byte(shortURL))
 }
 
 func getURL(w http.ResponseWriter, r *http.Request) {
