@@ -32,7 +32,7 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 
 func postURL(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
-	if err != nil {
+	if err != nil || len(body) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
