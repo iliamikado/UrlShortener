@@ -26,13 +26,13 @@ func GetURL(m map[string]string, id string) (string, error) {
 const (
 	UppercaseA = 65
 	LowercaseA = 97
-	IdLen = 5
+	IDLen = 5
 	LettersCount = 26
 )
 
 func randomID() string {
 	var chars []byte
-	for i := 0; i < IdLen; i++ {
+	for i := 0; i < IDLen; i++ {
 		uppercase := rand.Intn(2)
 		letter := rand.Intn(LettersCount)
 		if uppercase == 0 {
