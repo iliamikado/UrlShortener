@@ -3,6 +3,8 @@ package main
 import (
 	"io"
 	"net/http"
+
+	"github.com/go-chi/chi"
 	"github.com/iliamikado/UrlShortener/internal/logic"
 )
 
@@ -15,19 +17,15 @@ func main() {
 var urlsMap map[string]string
 func run() error {
 	urlsMap = make(map[string]string)
-	mx := http.NewServeMux()
-	mx.HandleFunc("/", mainPage)
-	return http.ListenAndServe(":8080", mx)
+	r := AppRouter()
+	return http.ListenAndServe(":8080", r)
 }
 
-func mainPage(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
-		postURL(w, r)
-	} else if r.Method == http.MethodGet {
-		getURL(w, r)
-	} else {
-		w.WriteHeader(http.StatusBadRequest);
-	}
+func AppRouter() *chi.Mux{
+	r := chi.NewRouter()
+	r.Get("/{id}", getURL)
+	r.Post("/", postURL)
+	return r
 }
 
 func postURL(w http.ResponseWriter, r *http.Request) {
@@ -48,7 +46,7 @@ func postURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func getURL(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Path[1:]
+	id := chi.URLParam(r, "id")
 	longURL, err := logic.GetURL(urlsMap, id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
