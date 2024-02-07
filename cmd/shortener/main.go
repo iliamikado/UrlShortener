@@ -6,9 +6,12 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/iliamikado/UrlShortener/internal/logic"
+	"github.com/iliamikado/UrlShortener/internal/config"
 )
 
 func main() {
+	config.ParseConfig()
+
 	if err := run(); err != nil {
 		panic(err)
 	}
@@ -18,7 +21,7 @@ var urlsMap map[string]string
 func run() error {
 	urlsMap = make(map[string]string)
 	r := AppRouter()
-	return http.ListenAndServe(":8080", r)
+	return http.ListenAndServe(config.LaunchAddress, r)
 }
 
 func AppRouter() *chi.Mux{
@@ -36,11 +39,7 @@ func postURL(w http.ResponseWriter, r *http.Request) {
 	}
 	longURL := string(body)
 	id := logic.AddURL(urlsMap, longURL)
-	scheme := "http"
-	if r.TLS != nil {
-		scheme = "https"
-	}
-	shortURL := scheme + "://" + r.Host + "/" + id
+	shortURL := config.ResultAddress + "/" + id
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(shortURL))
 }

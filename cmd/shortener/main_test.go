@@ -7,13 +7,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/iliamikado/UrlShortener/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestMethodPOST(t *testing.T) {
-	urlsMap = make(map[string]string)
-	srv := httptest.NewServer(AppRouter())
+	srv := launchServer()
 	defer srv.Close()
 
 	t.Run("right request", func(t *testing.T) {
@@ -33,8 +33,7 @@ func TestMethodPOST(t *testing.T) {
 }
 
 func TestMethodGET(t *testing.T) {
-	urlsMap = make(map[string]string)
-	srv := httptest.NewServer(AppRouter())
+	srv := launchServer()
 	defer srv.Close()
 
 	t.Run("right request", func(t *testing.T) {
@@ -53,6 +52,14 @@ func TestMethodGET(t *testing.T) {
 		defer resp.Body.Close()
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
+}
+
+func launchServer() *httptest.Server {
+	urlsMap = make(map[string]string)
+	srv := httptest.NewServer(AppRouter())
+	config.LaunchAddress = srv.URL
+	config.ResultAddress = srv.URL
+	return srv
 }
 
 func testRequest(t *testing.T, ts *httptest.Server, method, path, body string) (*http.Response, string) {
