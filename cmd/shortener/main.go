@@ -5,8 +5,10 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/iliamikado/UrlShortener/internal/storage"
 	"github.com/iliamikado/UrlShortener/internal/config"
+	"github.com/iliamikado/UrlShortener/internal/logger"
+	"github.com/iliamikado/UrlShortener/internal/storage"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -21,11 +23,17 @@ var urlStorage *storage.URLStorage
 func run() error {
 	urlStorage = storage.NewURLStorage()
 	r := AppRouter()
+	if err := logger.Initialize(config.LoggerLevel); err != nil {
+        return err
+    }
+
+	logger.Log.Info("Running server", zap.String("address", config.LaunchAddress))
 	return http.ListenAndServe(config.LaunchAddress, r)
 }
 
 func AppRouter() *chi.Mux{
 	r := chi.NewRouter()
+	r.Use(logger.RequestLogger)
 	r.Get("/{id}", getURL)
 	r.Post("/", postURL)
 	return r
