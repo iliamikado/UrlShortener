@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/iliamikado/UrlShortener/internal/logic"
+	"github.com/iliamikado/UrlShortener/internal/storage"
 	"github.com/iliamikado/UrlShortener/internal/config"
 )
 
@@ -17,9 +17,9 @@ func main() {
 	}
 }
 
-var urlsMap map[string]string
+var urlStorage *storage.URLStorage
 func run() error {
-	urlsMap = make(map[string]string)
+	urlStorage = storage.NewURLStorage()
 	r := AppRouter()
 	return http.ListenAndServe(config.LaunchAddress, r)
 }
@@ -38,7 +38,7 @@ func postURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	longURL := string(body)
-	id := logic.AddURL(urlsMap, longURL)
+	id := urlStorage.AddURL(longURL)
 	shortURL := config.ResultAddress + "/" + id
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(shortURL))
@@ -46,7 +46,7 @@ func postURL(w http.ResponseWriter, r *http.Request) {
 
 func getURL(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	longURL, err := logic.GetURL(urlsMap, id)
+	longURL, err := urlStorage.GetURL(id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return

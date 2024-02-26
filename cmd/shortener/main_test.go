@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/iliamikado/UrlShortener/internal/config"
+	"github.com/iliamikado/UrlShortener/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -55,7 +56,7 @@ func TestMethodGET(t *testing.T) {
 }
 
 func launchServer() *httptest.Server {
-	urlsMap = make(map[string]string)
+	urlStorage = storage.NewURLStorage()
 	srv := httptest.NewServer(AppRouter())
 	config.LaunchAddress = srv.URL
 	config.ResultAddress = srv.URL
