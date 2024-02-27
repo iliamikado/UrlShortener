@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi"
 	"github.com/iliamikado/UrlShortener/internal/config"
@@ -19,6 +20,7 @@ func AppRouter(st *storage.URLStorage) *chi.Mux {
 
 	r := chi.NewRouter()
 	r.Use(logger.RequestLogger)
+	r.Use(gzipMiddleware)
 	r.Get("/{id}", getURL)
 	r.Post("/", postURL)
 	r.Post("/api/shorten", postJSON)
@@ -34,6 +36,7 @@ func postURL(w http.ResponseWriter, r *http.Request) {
 	longURL := string(body)
 	id := urlStorage.AddURL(longURL)
 	shortURL := config.ResultAddress + "/" + id
+	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(shortURL))
 }
@@ -85,4 +88,31 @@ func postJSON(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	w.Write(body)
+}
+
+func gzipMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        ow := w
+
+        acceptEncoding := r.Header.Get("Accept-Encoding")
+        supportsGzip := strings.Contains(acceptEncoding, "gzip")
+        if supportsGzip {
+            cw := newCompressWriter(w)
+            ow = cw
+            defer cw.Close()
+        }
+
+        contentEncoding := r.Header.Get("Content-Encoding")
+        sendsGzip := strings.Contains(contentEncoding, "gzip")
+        if sendsGzip {
+            cr, err := newCompressReader(r.Body)
+            if err != nil {
+                w.WriteHeader(http.StatusInternalServerError)
+                return
+            }
+            r.Body = cr
+            defer cr.Close()
+        }
+        next.ServeHTTP(ow, r)
+    })
 }

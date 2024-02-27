@@ -103,7 +103,7 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path, body string) (
 			return http.ErrUseLastResponse
 		},
 	}
-
+	// req.Header.Set("Accept-Encoding", "")
 	resp, err := client.Do(req)
 	require.NoError(t, err)
 
