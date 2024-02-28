@@ -28,7 +28,7 @@ func ParseConfig() {
 	if loggerLevel := os.Getenv("LOGGER_LEVEL"); loggerLevel != "" {
 		LoggerLevel = loggerLevel
 	}
-	if fileStoragePath := os.Getenv("LOGGER_LEVEL"); fileStoragePath != "" {
+	if fileStoragePath := os.Getenv("FILE_STORAGE_PATH"); fileStoragePath != "" {
 		FileStoragePath = fileStoragePath
 	}
 }
