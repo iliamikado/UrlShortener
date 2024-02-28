@@ -16,7 +16,7 @@ func ParseConfig() {
 	flag.StringVar(&LaunchAddress, "a", "localhost:8080", "Set launch address for server")
 	flag.StringVar(&ResultAddress, "b", "http://localhost:8080", "Set basic result address for short URL")
 	flag.StringVar(&LoggerLevel, "l", "info", "Set Logger level")
-	flag.StringVar(&FileStoragePath, "f", "tmp/short-url-db.json", "Set file storage path for urls")
+	flag.StringVar(&FileStoragePath, "f", "/tmp/short-url-db.json", "Set file storage path for urls")
 	flag.Parse()
 
 	if serverAddress := os.Getenv("SERVER_ADDRESS"); serverAddress != "" {

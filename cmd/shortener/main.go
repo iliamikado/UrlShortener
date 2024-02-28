@@ -21,11 +21,12 @@ func main() {
 
 var urlStorage *storage.URLStorage
 func run() error {
-	urlStorage = storage.NewURLStorage(config.FileStoragePath)
-	r := handlers.AppRouter(urlStorage)
 	if err := logger.Initialize(config.LoggerLevel); err != nil {
         return err
     }
+
+	urlStorage = storage.NewURLStorage(config.FileStoragePath)
+	r := handlers.AppRouter(urlStorage)
 
 	logger.Log.Info("Running server", zap.String("address", config.LaunchAddress))
 	return http.ListenAndServe(config.LaunchAddress, r)

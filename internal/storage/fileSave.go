@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/iliamikado/UrlShortener/internal/logger"
 )
 
 type FileSaver struct {
@@ -19,6 +21,7 @@ type SavedURL struct {
 }
 
 func NewFileSaver(pathToFile string) *FileSaver {
+	logger.Log.Info("Create file with path " + pathToFile)
 	os.Mkdir(filepath.Dir(pathToFile), 0777)
 	file, _ := os.OpenFile(pathToFile, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
 	return &FileSaver{file}
