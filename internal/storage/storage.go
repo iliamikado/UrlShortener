@@ -3,15 +3,22 @@ package storage
 import (
 	"errors"
 	"math/rand"
+
+	"github.com/iliamikado/UrlShortener/internal/config"
 )
 
 type URLStorage struct {
 	m map[string]string
+	fileSaver *FileSaver
 }
 
-func NewURLStorage() *URLStorage {
+func NewURLStorage(pathToFile string) *URLStorage {
 	var st URLStorage
 	st.m = make(map[string]string)
+	if pathToFile != "" {
+		st.fileSaver = NewFileSaver(pathToFile)
+		st.m = st.fileSaver.GetAllData()
+	}
 	return &st
 }
 
@@ -19,6 +26,13 @@ func (st *URLStorage) AddURL(url string) string {
 	for id := randomID(); true; id = randomID() {
 		if _, exist := st.m[id]; !exist {
 			st.m[id] = url
+			if st.fileSaver != nil {
+				st.fileSaver.AddURL(SavedURL{
+					ID: id,
+					ShortURL: config.ResultAddress + "/" + id,
+					OriginURL: url,
+				})
+			}
 			return id
 		}
 	}

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"go.uber.org/zap"
-	
+
 	"github.com/iliamikado/UrlShortener/internal/config"
 	"github.com/iliamikado/UrlShortener/internal/logger"
 	"github.com/iliamikado/UrlShortener/internal/storage"
@@ -21,7 +21,7 @@ func main() {
 
 var urlStorage *storage.URLStorage
 func run() error {
-	urlStorage = storage.NewURLStorage()
+	urlStorage = storage.NewURLStorage(config.FileStoragePath)
 	r := handlers.AppRouter(urlStorage)
 	if err := logger.Initialize(config.LoggerLevel); err != nil {
         return err
