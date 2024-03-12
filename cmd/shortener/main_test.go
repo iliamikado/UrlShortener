@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -8,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/iliamikado/UrlShortener/internal/config"
+	"github.com/iliamikado/UrlShortener/internal/handlers"
+	"github.com/iliamikado/UrlShortener/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -54,9 +57,38 @@ func TestMethodGET(t *testing.T) {
 	})
 }
 
+func TestMethodPostJSON(t *testing.T) {
+	srv := launchServer()
+	defer srv.Close()
+
+	type (
+		RequestJSON struct {
+			URL		string	`json:"url"`
+		}
+		ResponseJSON struct {
+			Result	string	`json:"result"`
+		}
+	)
+
+	t.Run("right request", func(t *testing.T) {
+		longURL := "https://ya.ru"
+		body, _ := json.Marshal(RequestJSON{longURL})
+		postResp, ans := testRequest(t, srv, http.MethodPost, "/api/shorten", string(body))
+		defer postResp.Body.Close()
+		var respJSON ResponseJSON
+		require.NoError(t, json.Unmarshal([]byte(ans), &respJSON), "Unable to unmarshal response")
+		shortURL := respJSON.Result
+		shortURL = strings.Replace(shortURL, srv.URL, "", 1)
+		resp, _ := testRequest(t, srv, http.MethodGet, shortURL, "")
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusTemporaryRedirect, resp.StatusCode, "Wrong status code")
+		assert.Equal(t, longURL, resp.Header.Get("Location"), "Wrong long url")
+	})
+}
+
 func launchServer() *httptest.Server {
-	urlsMap = make(map[string]string)
-	srv := httptest.NewServer(AppRouter())
+	urlStorage = storage.NewURLStorage("")
+	srv := httptest.NewServer(handlers.AppRouter(urlStorage))
 	config.LaunchAddress = srv.URL
 	config.ResultAddress = srv.URL
 	return srv
@@ -71,7 +103,7 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path, body string) (
 			return http.ErrUseLastResponse
 		},
 	}
-
+	// req.Header.Set("Accept-Encoding", "")
 	resp, err := client.Do(req)
 	require.NoError(t, err)
 
