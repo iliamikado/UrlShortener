@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/go-chi/chi"
 	"github.com/iliamikado/UrlShortener/internal/config"
@@ -27,6 +26,12 @@ func AppRouter(st *storage.URLStorage) *chi.Mux {
 	return r
 }
 
+func createShortURL(longURL string) string {
+	id := urlStorage.AddURL(longURL)
+	shortURL := config.ResultAddress + "/" + id
+	return shortURL
+}
+
 func postURL(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil || len(body) == 0 {
@@ -34,8 +39,7 @@ func postURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	longURL := string(body)
-	id := urlStorage.AddURL(longURL)
-	shortURL := config.ResultAddress + "/" + id
+	shortURL := createShortURL(longURL)
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(shortURL))
@@ -76,8 +80,8 @@ func postJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
         return
 	}
-	id := urlStorage.AddURL(req.URL)
-	shortURL := config.ResultAddress + "/" + id
+	longURL := req.URL
+	shortURL := createShortURL(longURL)
 	resp := ResponseJSON{shortURL}
 	
 	var body []byte
@@ -88,31 +92,4 @@ func postJSON(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	w.Write(body)
-}
-
-func gzipMiddleware(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        ow := w
-
-        acceptEncoding := r.Header.Get("Accept-Encoding")
-        supportsGzip := strings.Contains(acceptEncoding, "gzip")
-        if supportsGzip {
-            cw := newCompressWriter(w)
-            ow = cw
-            defer cw.Close()
-        }
-
-        contentEncoding := r.Header.Get("Content-Encoding")
-        sendsGzip := strings.Contains(contentEncoding, "gzip")
-        if sendsGzip {
-            cr, err := newCompressReader(r.Body)
-            if err != nil {
-                w.WriteHeader(http.StatusInternalServerError)
-                return
-            }
-            r.Body = cr
-            defer cr.Close()
-        }
-        next.ServeHTTP(ow, r)
-    })
 }

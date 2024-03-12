@@ -23,20 +23,16 @@ func NewURLStorage(pathToFile string) *URLStorage {
 }
 
 func (st *URLStorage) AddURL(url string) string {
-	for id := randomID(); true; id = randomID() {
-		if _, exist := st.m[id]; !exist {
-			st.m[id] = url
-			if st.fileSaver != nil {
-				st.fileSaver.AddURL(SavedURL{
-					ID: id,
-					ShortURL: config.ResultAddress + "/" + id,
-					OriginURL: url,
-				})
-			}
-			return id
-		}
+	id := st.randomNewID()
+	st.m[id] = url
+	if st.fileSaver != nil {
+		st.fileSaver.AddURL(SavedURL{
+			ID: id,
+			ShortURL: config.ResultAddress + "/" + id,
+			OriginURL: url,
+		})
 	}
-	return ""
+	return id
 }
 
 func (st *URLStorage) GetURL(id string) (string, error) {
@@ -54,17 +50,22 @@ const (
 	LettersCount = 26
 )
 
-func randomID() string {
+func (st *URLStorage) randomNewID() string {
 	var chars []byte
-	for i := 0; i < IDLen; i++ {
-		uppercase := rand.Intn(2)
-		letter := rand.Intn(LettersCount)
-		if uppercase == 0 {
-			letter += LowercaseA
-		} else {
-			letter += UppercaseA
+	for {
+		for i := 0; i < IDLen; i++ {
+			uppercase := rand.Intn(2)
+			letter := rand.Intn(LettersCount)
+			if uppercase == 0 {
+				letter += LowercaseA
+			} else {
+				letter += UppercaseA
+			}
+			chars = append(chars, byte(letter))
 		}
-		chars = append(chars, byte(letter))
+		id := string(chars)
+		if _, exist := st.m[id]; !exist {
+			return id
+		}
 	}
-	return string(chars)
 }
