@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/iliamikado/UrlShortener/internal/logger"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -16,8 +15,7 @@ var URLDB URLShortenerDB
 
 func Initialize(host string) {
 	logger.Log.Info("Opening DB with host=" + host)
-	ps := fmt.Sprintf("host=%s", host)
-	db, err := sql.Open("pgx", ps)
+	db, err := sql.Open("pgx", host)
 	if err != nil {
 		logger.Log.Error("Failed to open DB")
 		panic(err)
