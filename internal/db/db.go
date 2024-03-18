@@ -9,26 +9,26 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-type UrlShortenerDb struct {
+type URLShortenerDB struct {
 	db *sql.DB
 }
-var UrlDb UrlShortenerDb
+var URLDB URLShortenerDB
 
 func Initialize(host string) {
 	logger.Log.Info("Opening DB with host=" + host)
-	ps := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, `admin`, `password`, `url-shortener`)
+	ps := fmt.Sprintf("host=%s", host)
 	db, err := sql.Open("pgx", ps)
 	if err != nil {
 		logger.Log.Error("Failed to open DB")
 		panic(err)
 	}
-	UrlDb = UrlShortenerDb{db}
+	URLDB = URLShortenerDB{db}
 }
 
-func (urlDb *UrlShortenerDb) Close() {
-	urlDb.db.Close()
+func (urlDB *URLShortenerDB) Close() {
+	urlDB.db.Close()
 }
 
-func (urlDb *UrlShortenerDb) Ping() error {
-	return urlDb.db.PingContext(context.TODO())
+func (urlDB *URLShortenerDB) Ping() error {
+	return urlDB.db.PingContext(context.TODO())
 }

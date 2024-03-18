@@ -97,8 +97,9 @@ func postJSON(w http.ResponseWriter, r *http.Request) {
 }
 
 func pingDB(w http.ResponseWriter, r *http.Request) {
-	err := db.UrlDb.Ping()
+	err := db.URLDB.Ping()
 	if err != nil {
+		logger.Log.Error(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		w.WriteHeader(http.StatusOK)
