@@ -15,6 +15,7 @@ type URLStorage struct {
 func NewURLStorage(pathToFile string) *URLStorage {
 	var st URLStorage
 	st.m = make(map[string]string)
+
 	if pathToFile != "" {
 		st.fileSaver = NewFileSaver(pathToFile)
 		st.m = st.fileSaver.GetAllData()

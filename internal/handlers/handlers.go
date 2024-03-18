@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/iliamikado/UrlShortener/internal/config"
+	"github.com/iliamikado/UrlShortener/internal/db"
 	"github.com/iliamikado/UrlShortener/internal/logger"
 	"github.com/iliamikado/UrlShortener/internal/storage"
 )
@@ -23,6 +24,7 @@ func AppRouter(st *storage.URLStorage) *chi.Mux {
 	r.Get("/{id}", getURL)
 	r.Post("/", postURL)
 	r.Post("/api/shorten", postJSON)
+	r.Get("/ping", pingDB)
 	return r
 }
 
@@ -92,4 +94,13 @@ func postJSON(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	w.Write(body)
+}
+
+func pingDB(w http.ResponseWriter, r *http.Request) {
+	err := db.UrlDb.Ping()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
 }
