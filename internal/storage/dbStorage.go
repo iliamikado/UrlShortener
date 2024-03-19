@@ -27,3 +27,18 @@ func (st *DBStorage) AddURL(longURL string) string {
 func (st *DBStorage) GetURL(id string) (string, error) {
 	return st.urlDB.GetURL(id)
 }
+
+func (st *DBStorage) AddManyURLs(longURLs []string) []string {
+	var ids []string
+	for {
+		ids = make([]string, len(longURLs))
+		for i := 0; i < len(longURLs); i++ {
+			ids[i] = randomID();
+		}
+		err := st.urlDB.AddManyURLs(ids, longURLs)
+		if err == nil {
+			break
+		}
+	}
+	return ids
+}

@@ -30,3 +30,11 @@ func (st *SimpleStorage) GetURL(id string) (string, error) {
 		return "", errors.New("no URL with this ID")
 	}
 }
+
+func (st *SimpleStorage) AddManyURLs(longURLs []string) []string {
+	var ids []string
+	for _, url := range longURLs {
+		ids = append(ids, st.AddURL(url))
+	}
+	return ids
+}

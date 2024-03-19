@@ -25,6 +25,7 @@ func AppRouter(st storage.URLStorage) *chi.Mux {
 	r.Post("/", postURL)
 	r.Post("/api/shorten", postJSON)
 	r.Get("/ping", pingDB)
+	r.Post("/api/shorten/batch", postManyURL)
 	return r
 }
 
@@ -104,4 +105,50 @@ func pingDB(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusOK)
 	}
+}
+
+type (
+	RequestBatchItem struct {
+		CorrelationID 	string	`json:"correlation_id"`
+		OriginalURL		string	`json:"original_url"`
+	}
+	ResponseBatchItem struct {
+		CorrelationID 	string	`json:"correlation_id"`
+		ShortURL		string	`json:"short_url"`
+	}
+)
+
+func postManyURL(w http.ResponseWriter, r *http.Request) {
+	var (
+		req []RequestBatchItem
+		buf bytes.Buffer
+	)
+	_, err := buf.ReadFrom(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err = json.Unmarshal(buf.Bytes(), &req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+	}
+	longURLs := make([]string, len(req))
+	for i, x := range req {
+		longURLs[i] = x.OriginalURL
+	}
+	ids := urlStorage.AddManyURLs(longURLs)
+	resp := make([]ResponseBatchItem, len(ids))
+	for i, x := range ids {
+		resp[i] = ResponseBatchItem{req[i].CorrelationID, config.ResultAddress + "/" + x}
+	}
+	
+	var body []byte
+	if body, err = json.Marshal(resp); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	w.Write(body)
 }

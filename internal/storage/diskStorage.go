@@ -28,3 +28,11 @@ func (st *DiskStorage) AddURL(longURL string) string {
 func (st *DiskStorage) GetURL(id string) (string, error) {
 	return st.smSt.GetURL(id)
 }
+
+func (st *DiskStorage) AddManyURLs(longURLs []string) []string {
+	var ids []string
+	for _, url := range longURLs {
+		ids = append(ids, st.AddURL(url))
+	}
+	return ids
+}

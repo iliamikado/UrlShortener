@@ -35,6 +35,16 @@ func (urlDB *URLShortenerDB) AddURL(id, longURL string) error {
 	return err
 }
 
+func (urlDB *URLShortenerDB) AddManyURLs(ids, longURLs []string) error {
+	tx, _ := urlDB.db.Begin()
+	stmt, _ := tx.Prepare(`insert into urls values ($1, $2)`)
+	defer stmt.Close()
+	for i := 0; i < len(ids); i++ {
+		stmt.Exec(ids[i], longURLs[i])
+	}
+	return tx.Commit()
+}
+
 func (urlDB *URLShortenerDB) GetURL(id string) (string, error) {
 	row := urlDB.db.QueryRow(`select long_url from urls where id = $1`, id)
 	var longURL string
