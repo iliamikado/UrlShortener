@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 
@@ -29,10 +30,10 @@ func AppRouter(st storage.URLStorage) *chi.Mux {
 	return r
 }
 
-func createShortURL(longURL string) string {
-	id := urlStorage.AddURL(longURL)
+func createShortURL(longURL string) (string, error) {
+	id, err := urlStorage.AddURL(longURL)
 	shortURL := config.ResultAddress + "/" + id
-	return shortURL
+	return shortURL, err
 }
 
 func postURL(w http.ResponseWriter, r *http.Request) {
@@ -42,9 +43,13 @@ func postURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	longURL := string(body)
-	shortURL := createShortURL(longURL)
+	shortURL, err := createShortURL(longURL)
 	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusCreated)
+	if err != nil && errors.Is(err, storage.URLAlreadyExistsError) {
+		w.WriteHeader(http.StatusConflict)
+	} else {
+		w.WriteHeader(http.StatusCreated)
+	}
 	w.Write([]byte(shortURL))
 }
 
@@ -84,7 +89,7 @@ func postJSON(w http.ResponseWriter, r *http.Request) {
         return
 	}
 	longURL := req.URL
-	shortURL := createShortURL(longURL)
+	shortURL, createErr := createShortURL(longURL)
 	resp := ResponseJSON{shortURL}
 	
 	var body []byte
@@ -93,7 +98,11 @@ func postJSON(w http.ResponseWriter, r *http.Request) {
         return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	if createErr != nil && errors.Is(err, storage.URLAlreadyExistsError)  {
+		w.WriteHeader(http.StatusConflict)
+	} else {
+		w.WriteHeader(http.StatusCreated)
+	}
 	w.Write(body)
 }
 

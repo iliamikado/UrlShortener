@@ -15,14 +15,14 @@ func NewDiskStorage(pathToFile string) *DiskStorage {
 	return &st
 }
 
-func (st *DiskStorage) AddURL(longURL string) string {
-	id := st.smSt.AddURL(longURL)
+func (st *DiskStorage) AddURL(longURL string) (string, error) {
+	id, err := st.smSt.AddURL(longURL)
 	st.fileSaver.AddURL(SavedURL{
 		ID:        id,
 		ShortURL:  config.ResultAddress + "/" + id,
 		OriginURL: longURL,
 	})
-	return id
+	return id, err
 }
 
 func (st *DiskStorage) GetURL(id string) (string, error) {
@@ -32,7 +32,8 @@ func (st *DiskStorage) GetURL(id string) (string, error) {
 func (st *DiskStorage) AddManyURLs(longURLs []string) []string {
 	var ids []string
 	for _, url := range longURLs {
-		ids = append(ids, st.AddURL(url))
+		id, _ := st.AddURL(url)
+		ids = append(ids, id)
 	}
 	return ids
 }

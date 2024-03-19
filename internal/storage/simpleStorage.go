@@ -12,7 +12,7 @@ func NewSimpleStorage() *SimpleStorage {
 	return &st
 }
 
-func (st *SimpleStorage) AddURL(longURL string) string {
+func (st *SimpleStorage) AddURL(longURL string) (string, error) {
 	var newID string
 	for id := randomID(); newID == ""; id = randomID() {
 		if _, exist := st.m[id]; !exist {
@@ -20,7 +20,7 @@ func (st *SimpleStorage) AddURL(longURL string) string {
 		}
 	}
 	st.m[newID] = longURL
-	return newID
+	return newID, nil
 }
 
 func (st *SimpleStorage) GetURL(id string) (string, error) {
@@ -34,7 +34,8 @@ func (st *SimpleStorage) GetURL(id string) (string, error) {
 func (st *SimpleStorage) AddManyURLs(longURLs []string) []string {
 	var ids []string
 	for _, url := range longURLs {
-		ids = append(ids, st.AddURL(url))
+		id, _ := st.AddURL(url)
+		ids = append(ids, id)
 	}
 	return ids
 }

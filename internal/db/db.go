@@ -26,7 +26,7 @@ func Initialize(host string) {
 func (urlDB *URLShortenerDB) CreateURLTable() {
 	urlDB.db.Exec(`create table if not exists urls (
 		id text PRIMARY KEY NOT NULL,
-		long_url text NOT NULL
+		long_url text UNIQUE NOT NULL
 	);`)
 }
 
@@ -50,6 +50,13 @@ func (urlDB *URLShortenerDB) GetURL(id string) (string, error) {
 	var longURL string
 	err := row.Scan(&longURL)
 	return longURL, err
+}
+
+func (urlDB *URLShortenerDB) GetIDByURL(longURL string) (string, error) {
+	row := urlDB.db.QueryRow(`select id from urls where long_url = $1`, longURL)
+	var id string
+	err := row.Scan(&id)
+	return id, err
 }
 
 func (urlDB *URLShortenerDB) Close() {

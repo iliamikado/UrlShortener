@@ -1,6 +1,12 @@
 package storage
 
-import "github.com/iliamikado/UrlShortener/internal/db"
+import (
+	"errors"
+
+	"github.com/iliamikado/UrlShortener/internal/db"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
+)
 
 type DBStorage struct {
 	urlDB *db.URLShortenerDB
@@ -13,15 +19,24 @@ func NewDBStorage(urlDB *db.URLShortenerDB) *DBStorage {
 	return &st
 }
 
-func (st *DBStorage) AddURL(longURL string) string {
+func (st *DBStorage) AddURL(longURL string) (string, error) {
 	var id string
+	var err *pgconn.PgError
 	for id = randomID(); true; id = randomID() {
-		err := st.urlDB.AddURL(id, longURL)
-		if err == nil {
-			break;
+		e := st.urlDB.AddURL(id, longURL)
+		if errors.As(e, &err) {
+			if err.Code == pgerrcode.UniqueViolation && err.ConstraintName == "urls_id_key" {
+				continue
+			} else {
+				break
+			}
 		}
-	}	
-	return id
+	}
+	if err.Code == pgerrcode.UniqueViolation && err.ConstraintName == "urls_long_url_key" {
+		id, _ = st.urlDB.GetIDByURL(longURL)
+		return id, URLAlreadyExistsError
+	}
+	return id, err
 }
 
 func (st *DBStorage) GetURL(id string) (string, error) {
