@@ -20,16 +20,22 @@ func main() {
 	}
 }
 
-var urlStorage *storage.URLStorage
+var urlStorage storage.URLStorage
 
 func run() error {
 	if err := logger.Initialize(config.LoggerLevel); err != nil {
         return err
     }
 
-	db.Initialize(config.DatabaseDsn)
+	if (config.DatabaseDsn != "") {
+		db.Initialize(config.DatabaseDsn)
+		urlStorage = storage.NewDBStorage(&db.URLDB)
+	} else if (config.FileStoragePath != "") {
+		urlStorage = storage.NewDiskStorage(config.FileStoragePath)
+	} else {
+		urlStorage = storage.NewSimpleStorage()
+	}
 
-	urlStorage = storage.NewURLStorage(config.FileStoragePath)
 	r := handlers.AppRouter(urlStorage)
 
 	logger.Log.Info("Running server", zap.String("address", config.LaunchAddress))

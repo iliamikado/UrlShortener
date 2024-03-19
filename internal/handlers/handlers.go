@@ -13,9 +13,9 @@ import (
 	"github.com/iliamikado/UrlShortener/internal/storage"
 )
 
-var urlStorage *storage.URLStorage
+var urlStorage storage.URLStorage
 
-func AppRouter(st *storage.URLStorage) *chi.Mux {
+func AppRouter(st storage.URLStorage) *chi.Mux {
 	urlStorage = st
 
 	r := chi.NewRouter()
