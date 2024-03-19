@@ -31,6 +31,7 @@ func AppRouter(st storage.URLStorage) *chi.Mux {
 }
 
 func createShortURL(longURL string) (string, error) {
+	logger.Log.Info("Get longUrl = " + longURL)
 	id, err := urlStorage.AddURL(longURL)
 	shortURL := config.ResultAddress + "/" + id
 	return shortURL, err
@@ -98,7 +99,7 @@ func postJSON(w http.ResponseWriter, r *http.Request) {
         return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if createErr != nil && errors.Is(err, storage.URLAlreadyExistsError)  {
+	if createErr != nil && errors.Is(createErr, storage.URLAlreadyExistsError)  {
 		w.WriteHeader(http.StatusConflict)
 	} else {
 		w.WriteHeader(http.StatusCreated)
