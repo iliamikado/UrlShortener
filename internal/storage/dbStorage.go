@@ -27,10 +27,9 @@ func (st *DBStorage) AddURL(longURL string) (string, error) {
 		if errors.As(e, &err) {
 			if err.Code == pgerrcode.UniqueViolation && err.ConstraintName == "urls_id_key" {
 				continue
-			} else {
-				break
 			}
 		}
+		break
 	}
 	if err.Code == pgerrcode.UniqueViolation && err.ConstraintName == "urls_long_url_key" {
 		id, _ = st.urlDB.GetIDByURL(longURL)
