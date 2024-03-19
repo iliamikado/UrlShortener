@@ -13,14 +13,14 @@ func NewSimpleStorage() *SimpleStorage {
 }
 
 func (st *SimpleStorage) AddURL(longURL string) string {
-	var newId string
-	for id := randomID(); newId == ""; id = randomID() {
+	var newID string
+	for id := randomID(); newID == ""; id = randomID() {
 		if _, exist := st.m[id]; !exist {
-			newId = id
+			newID = id
 		}
 	}
-	st.m[newId] = longURL
-	return newId
+	st.m[newID] = longURL
+	return newID
 }
 
 func (st *SimpleStorage) GetURL(id string) (string, error) {
