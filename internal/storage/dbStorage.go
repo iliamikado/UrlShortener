@@ -20,17 +20,9 @@ func NewDBStorage(urlDB *db.URLShortenerDB) *DBStorage {
 }
 
 func (st *DBStorage) AddURL(longURL string) (string, error) {
-	var id string
 	var err *pgconn.PgError
-	for id = randomID(); true; id = randomID() {
-		e := st.urlDB.AddURL(id, longURL)
-		if errors.As(e, &err) {
-			if err.Code == pgerrcode.UniqueViolation && err.ConstraintName == "urls_id_key" {
-				continue
-			}
-		}
-		break
-	}
+	id, e := st.urlDB.AddURL(longURL, randomID)
+	errors.As(e, &err)
 	if err != nil && err.Code == pgerrcode.UniqueViolation && err.ConstraintName == "urls_long_url_key" {
 		id, _ = st.urlDB.GetIDByURL(longURL)
 		return id, URLAlreadyExistsError
@@ -43,16 +35,6 @@ func (st *DBStorage) GetURL(id string) (string, error) {
 }
 
 func (st *DBStorage) AddManyURLs(longURLs []string) []string {
-	var ids []string
-	for {
-		ids = make([]string, len(longURLs))
-		for i := 0; i < len(longURLs); i++ {
-			ids[i] = randomID();
-		}
-		err := st.urlDB.AddManyURLs(ids, longURLs)
-		if err == nil {
-			break
-		}
-	}
+	ids, _ := st.urlDB.AddManyURLs(longURLs, randomID)
 	return ids
 }
