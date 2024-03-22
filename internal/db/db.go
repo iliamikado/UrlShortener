@@ -35,11 +35,11 @@ func (urlDB *URLShortenerDB) CreateURLTable() {
 	);`)
 }
 
-func (urlDB *URLShortenerDB) AddURL(longURL string, getId func() string) (string, error) {
+func (urlDB *URLShortenerDB) AddURL(longURL string, getID func() string) (string, error) {
 	var err error
 	var id string
 	for {
-		id = getId()
+		id = getID()
 		shortURL := config.ResultAddress + "/" + id;
 		_, err = urlDB.db.Exec(`insert into urls values ($1, $2, $3)`, id, shortURL, longURL)
 		if err != nil && isErrorWithID(err) {
@@ -50,7 +50,7 @@ func (urlDB *URLShortenerDB) AddURL(longURL string, getId func() string) (string
 	return id, err
 }
 
-func (urlDB *URLShortenerDB) AddManyURLs(longURLs []string, getId func() string) ([]string, error) {
+func (urlDB *URLShortenerDB) AddManyURLs(longURLs []string, getID func() string) ([]string, error) {
 	tx, _ := urlDB.db.Begin()
 	stmt, _ := tx.Prepare(`insert into urls values ($1, $2, $3)`)
 	defer stmt.Close()
@@ -58,7 +58,7 @@ func (urlDB *URLShortenerDB) AddManyURLs(longURLs []string, getId func() string)
 	for i := 0; i < len(longURLs); i++ {
 		var err error;
 		for {
-			ids[i] = getId()
+			ids[i] = getID()
 			shortURL := config.ResultAddress + "/" + ids[i];
 			_, err = stmt.Exec(ids[i], shortURL, longURLs[i])
 			if err != nil && isErrorWithID(err) {
