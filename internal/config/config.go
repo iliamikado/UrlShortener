@@ -10,6 +10,7 @@ var (
 	ResultAddress string
 	LoggerLevel string
 	FileStoragePath string
+	DatabaseDsn string
 )
 
 func ParseConfig() {
@@ -17,6 +18,7 @@ func ParseConfig() {
 	flag.StringVar(&ResultAddress, "b", "http://localhost:8080", "Set basic result address for short URL")
 	flag.StringVar(&LoggerLevel, "l", "info", "Set Logger level")
 	flag.StringVar(&FileStoragePath, "f", "/tmp/short-url-db.json", "Set file storage path for urls")
+	flag.StringVar(&DatabaseDsn, "d", "", "Set DB adress")
 	flag.Parse()
 
 	if serverAddress := os.Getenv("SERVER_ADDRESS"); serverAddress != "" {
@@ -30,5 +32,8 @@ func ParseConfig() {
 	}
 	if fileStoragePath := os.Getenv("FILE_STORAGE_PATH"); fileStoragePath != "" {
 		FileStoragePath = fileStoragePath
+	}
+	if databaseDsn := os.Getenv("DATABASE_DSN"); databaseDsn != "" {
+		DatabaseDsn = databaseDsn
 	}
 }

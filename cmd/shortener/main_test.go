@@ -87,7 +87,7 @@ func TestMethodPostJSON(t *testing.T) {
 }
 
 func launchServer() *httptest.Server {
-	urlStorage = storage.NewURLStorage("")
+	urlStorage := storage.NewSimpleStorage()
 	srv := httptest.NewServer(handlers.AppRouter(urlStorage))
 	config.LaunchAddress = srv.URL
 	config.ResultAddress = srv.URL
