@@ -106,6 +106,9 @@ func (urlDB *URLShortenerDB) GetUserURLs(userID uint) [][2]string{
 		rows.Scan(&uuid, &longURL)
 		ans = append(ans, [2]string{uuid, longURL})
 	}
+	if rows.Err() != nil {
+		panic("error in reading db")
+	}
 	return ans;
 }
 

@@ -8,7 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-const SECRET_KEY = "secret key"
+const SecretKey = "secret key"
 
 type userIDKey struct {}
 
@@ -48,7 +48,7 @@ func buildJWTString(userID uint) string {
         UserID: userID,
     })
 
-    tokenString, _ := token.SignedString([]byte(SECRET_KEY))
+    tokenString, _ := token.SignedString([]byte(SecretKey))
     return tokenString
 }
 
@@ -58,7 +58,7 @@ func getUserID(tokenString string) (uint, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
             return nil, errors.New("unexpected signing method")
         }
-        return []byte(SECRET_KEY), nil
+        return []byte(SecretKey), nil
     })
 
 	if err != nil {
