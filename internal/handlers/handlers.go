@@ -192,7 +192,7 @@ func getUserURLs(w http.ResponseWriter, r *http.Request) {
 	}
 	var resp = make([]ResponseUserURL, len(urls))
 	for i, url := range urls {
-		resp[i] = ResponseUserURL{url[0], url[1]}
+		resp[i] = ResponseUserURL{config.ResultAddress + "/" + url[0], url[1]}
 	}
 	body, _ := json.Marshal(resp)
 	w.Header().Set("Content-Type", "application/json")
