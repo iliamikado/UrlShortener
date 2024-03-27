@@ -21,18 +21,21 @@ func AppRouter(st storage.URLStorage) *chi.Mux {
 
 	r := chi.NewRouter()
 	r.Use(logger.RequestLogger)
+	r.Use(authMiddleware)
 	r.Use(gzipMiddleware)
 	r.Get("/{id}", getURL)
-	r.Post("/", postURL)
-	r.Post("/api/shorten", postJSON)
+	r.Post("/", http.HandlerFunc(postURL))
+	r.Post("/api/shorten", http.HandlerFunc(postJSON))
 	r.Get("/ping", pingDB)
-	r.Post("/api/shorten/batch", postManyURL)
+	r.Post("/api/shorten/batch", http.HandlerFunc(postManyURL))
+	r.Get("/api/user/urls", getUserURLs)
+	
 	return r
 }
 
-func createShortURL(longURL string) (string, error) {
+func createShortURL(longURL string, userID uint) (string, error) {
 	logger.Log.Info("Get longUrl = " + longURL)
-	id, err := urlStorage.AddURL(longURL)
+	id, err := urlStorage.AddURL(longURL, userID)
 	shortURL := config.ResultAddress + "/" + id
 	return shortURL, err
 }
@@ -44,7 +47,8 @@ func postURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	longURL := string(body)
-	shortURL, err := createShortURL(longURL)
+	userID := r.Context().Value(userIDKey{}).(uint)
+	shortURL, err := createShortURL(longURL, userID)
 	w.Header().Set("Content-Type", "text/plain")
 	if err != nil && errors.Is(err, storage.URLAlreadyExistsError) {
 		w.WriteHeader(http.StatusConflict)
@@ -90,7 +94,8 @@ func postJSON(w http.ResponseWriter, r *http.Request) {
         return
 	}
 	longURL := req.URL
-	shortURL, createErr := createShortURL(longURL)
+	userID := r.Context().Value(userIDKey{}).(uint)
+	shortURL, createErr := createShortURL(longURL, userID)
 	resp := ResponseJSON{shortURL}
 	
 	var body []byte
@@ -147,7 +152,8 @@ func postManyURL(w http.ResponseWriter, r *http.Request) {
 	for i, x := range req {
 		longURLs[i] = x.OriginalURL
 	}
-	ids := urlStorage.AddManyURLs(longURLs)
+	userID := r.Context().Value(userIDKey{}).(uint)
+	ids := urlStorage.AddManyURLs(longURLs, userID)
 	resp := make([]ResponseBatchItem, len(ids))
 	for i, x := range ids {
 		resp[i] = ResponseBatchItem{req[i].CorrelationID, config.ResultAddress + "/" + x}
@@ -160,5 +166,35 @@ func postManyURL(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	w.Write(body)
+}
+
+type ResponseUserURL struct {
+	ShortURL	string	`json:"short_url"`
+	OriginalURL	string	`json:"original_url"`
+}
+
+func getUserURLs(w http.ResponseWriter, r *http.Request) {
+	c, err := r.Cookie("JWT")
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	userID, err := getUserID(c.Value)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	urls := urlStorage.GetUserURLs(userID)
+	if len(urls) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	var resp = make([]ResponseUserURL, len(urls))
+	for i, url := range urls {
+		resp[i] = ResponseUserURL{url[0], url[1]}
+	}
+	body, _ := json.Marshal(resp)
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(body)
 }

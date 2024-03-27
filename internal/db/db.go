@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
-	"github.com/iliamikado/UrlShortener/internal/config"
 	"github.com/iliamikado/UrlShortener/internal/logger"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -28,29 +28,33 @@ func Initialize(host string) {
 }
 
 func (urlDB *URLShortenerDB) CreateURLTable() {
+	urlDB.db.Exec(`create table users (
+		id serial primary key
+	);`)
+
 	urlDB.db.Exec(`create table if not exists urls (
 		uuid text PRIMARY KEY NOT NULL,
-		short_url text NOT NULL,
-		long_url text UNIQUE NOT NULL
+		long_url text UNIQUE NOT NULL,
+		user_id integer references users (id) 
 	);`)
 }
 
-func (urlDB *URLShortenerDB) AddURL(longURL string, getID func() string) (string, error) {
+func (urlDB *URLShortenerDB) AddURL(longURL string, userID uint, getID func() string) (string, error) {
 	var err error
 	var id string
 	for {
 		id = getID()
-		shortURL := config.ResultAddress + "/" + id;
-		_, err = urlDB.db.Exec(`insert into urls values ($1, $2, $3)`, id, shortURL, longURL)
+		_, err = urlDB.db.Exec(`insert into urls values ($1, $2, $3)`, id, longURL, userID)
 		if err != nil && isErrorWithID(err) {
 			continue
 		}
 		break
 	}
+	fmt.Println(err)
 	return id, err
 }
 
-func (urlDB *URLShortenerDB) AddManyURLs(longURLs []string, getID func() string) ([]string, error) {
+func (urlDB *URLShortenerDB) AddManyURLs(longURLs []string, userID uint, getID func() string) ([]string, error) {
 	tx, _ := urlDB.db.Begin()
 	stmt, _ := tx.Prepare(`insert into urls values ($1, $2, $3)`)
 	defer stmt.Close()
@@ -59,8 +63,7 @@ func (urlDB *URLShortenerDB) AddManyURLs(longURLs []string, getID func() string)
 		var err error;
 		for {
 			ids[i] = getID()
-			shortURL := config.ResultAddress + "/" + ids[i];
-			_, err = stmt.Exec(ids[i], shortURL, longURLs[i])
+			_, err = stmt.Exec(ids[i], longURLs[i], userID)
 			if err != nil && isErrorWithID(err) {
 				continue
 			}
@@ -86,6 +89,26 @@ func (urlDB *URLShortenerDB) GetIDByURL(longURL string) (string, error) {
 	err := row.Scan(&id)
 	return id, err
 }
+
+func (urlDB *URLShortenerDB) CreateNewUser() uint {
+	var id uint
+	urlDB.db.QueryRow("insert into users default values returning id").Scan(&id)
+	logger.Log.Info(fmt.Sprintf("Created new user with id = %d", id))
+	return uint(id)
+}
+
+func (urlDB *URLShortenerDB) GetUserURLs(userID uint) [][2]string{
+	rows, _ := urlDB.db.Query("select uuid, long_url from urls where user_id = $1", userID)
+	defer rows.Close()
+	var ans [][2]string
+	for rows.Next() {
+		var uuid, longURL string
+		rows.Scan(&uuid, &longURL)
+		ans = append(ans, [2]string{uuid, longURL})
+	}
+	return ans;
+}
+
 
 func (urlDB *URLShortenerDB) Close() {
 	urlDB.db.Close()

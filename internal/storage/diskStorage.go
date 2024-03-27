@@ -11,16 +11,17 @@ func NewDiskStorage(pathToFile string) *DiskStorage {
 	var st DiskStorage
 	st.smSt = NewSimpleStorage()
 	st.fileSaver = NewFileSaver(pathToFile)
-	st.smSt.m = st.fileSaver.GetAllData()
+	st.smSt.m, st.smSt.usersURLs = st.fileSaver.GetAllData()
 	return &st
 }
 
-func (st *DiskStorage) AddURL(longURL string) (string, error) {
-	id, err := st.smSt.AddURL(longURL)
+func (st *DiskStorage) AddURL(longURL string, userID uint) (string, error) {
+	id, err := st.smSt.AddURL(longURL, userID)
 	st.fileSaver.AddURL(SavedURL{
-		ID:        id,
-		ShortURL:  config.ResultAddress + "/" + id,
-		OriginURL: longURL,
+		ID:       	id,
+		ShortURL: 	config.ResultAddress + "/" + id,
+		OriginURL:	longURL,
+		UserID:		userID,
 	})
 	return id, err
 }
@@ -29,11 +30,19 @@ func (st *DiskStorage) GetURL(id string) (string, error) {
 	return st.smSt.GetURL(id)
 }
 
-func (st *DiskStorage) AddManyURLs(longURLs []string) []string {
+func (st *DiskStorage) AddManyURLs(longURLs []string, userID uint) []string {
 	var ids []string
 	for _, url := range longURLs {
-		id, _ := st.AddURL(url)
+		id, _ := st.AddURL(url, userID)
 		ids = append(ids, id)
 	}
 	return ids
+}
+
+func (st *DiskStorage) CreateNewUser() uint {
+	return st.smSt.CreateNewUser()
+}
+
+func (st *DiskStorage) GetUserURLs(userID uint) [][2]string{
+	return st.smSt.GetUserURLs(userID)
 }
