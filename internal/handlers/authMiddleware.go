@@ -17,13 +17,8 @@ type Claims struct {
     UserID uint
 }
 
-func authMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			next.ServeHTTP(w, r)
-			return
-		}
-
+func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		var userID uint = 0;
 		cookie, err := r.Cookie("JWT")
 		if err == nil {
@@ -39,7 +34,7 @@ func authMiddleware(next http.Handler) http.Handler {
 
 		r = r.WithContext(context.WithValue(r.Context(), userIDKey{}, userID))
 		next.ServeHTTP(w, r)
-	})
+	}
 }
 
 func buildJWTString(userID uint) string {

@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"golang.org/x/sync/errgroup"
 )
 
 type URLShortenerDB struct {
@@ -35,7 +36,8 @@ func (urlDB *URLShortenerDB) CreateURLTable() {
 	urlDB.db.Exec(`create table if not exists urls (
 		uuid text PRIMARY KEY NOT NULL,
 		long_url text UNIQUE NOT NULL,
-		user_id integer references users (id) 
+		user_id integer references users (id),
+		is_deleted boolean default false
 	);`)
 }
 
@@ -50,7 +52,6 @@ func (urlDB *URLShortenerDB) AddURL(longURL string, userID uint, getID func() st
 		}
 		break
 	}
-	fmt.Println(err)
 	return id, err
 }
 
@@ -76,11 +77,12 @@ func (urlDB *URLShortenerDB) AddManyURLs(longURLs []string, userID uint, getID f
 	return ids, tx.Commit()
 }
 
-func (urlDB *URLShortenerDB) GetURL(id string) (string, error) {
-	row := urlDB.db.QueryRow(`select long_url from urls where uuid = $1`, id)
+func (urlDB *URLShortenerDB) GetURL(id string) (string, bool, error) {
+	row := urlDB.db.QueryRow(`select long_url, is_deleted from urls where uuid = $1`, id)
 	var longURL string
-	err := row.Scan(&longURL)
-	return longURL, err
+	var isDeleted bool
+	err := row.Scan(&longURL, &isDeleted)
+	return longURL, isDeleted, err
 }
 
 func (urlDB *URLShortenerDB) GetIDByURL(longURL string) (string, error) {
@@ -98,13 +100,16 @@ func (urlDB *URLShortenerDB) CreateNewUser() uint {
 }
 
 func (urlDB *URLShortenerDB) GetUserURLs(userID uint) [][2]string{
-	rows, _ := urlDB.db.Query("select uuid, long_url from urls where user_id = $1", userID)
+	rows, _ := urlDB.db.Query("select uuid, long_url, is_deleted from urls where user_id = $1", userID)
 	defer rows.Close()
 	var ans [][2]string
 	for rows.Next() {
 		var uuid, longURL string
-		rows.Scan(&uuid, &longURL)
-		ans = append(ans, [2]string{uuid, longURL})
+		var isDeleted bool
+		rows.Scan(&uuid, &longURL, &isDeleted)
+		if !isDeleted {
+			ans = append(ans, [2]string{uuid, longURL})
+		}
 	}
 	if rows.Err() != nil {
 		panic("error in reading db")
@@ -112,6 +117,26 @@ func (urlDB *URLShortenerDB) GetUserURLs(userID uint) [][2]string{
 	return ans;
 }
 
+func (urlDB *URLShortenerDB) DeleteURLs(ids []string, userID uint) {
+	g := new(errgroup.Group)
+	tx, _ := urlDB.db.Begin()
+	stmt, _ := tx.Prepare(`update urls set is_deleted = true where uuid = $1 and user_id = $2`)
+	defer stmt.Close()
+	for _, id := range ids {
+		id := id
+		g.Go(func() error {
+			_, err := stmt.Exec(id, userID)
+			return err
+		})
+	}
+	if err := g.Wait(); err != nil {
+		logger.Log.Error(err.Error())
+		tx.Rollback()
+		return
+	}
+
+	tx.Commit()
+}
 
 func (urlDB *URLShortenerDB) Close() {
 	urlDB.db.Close()

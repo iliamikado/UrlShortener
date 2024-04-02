@@ -46,3 +46,7 @@ func (st *DiskStorage) CreateNewUser() uint {
 func (st *DiskStorage) GetUserURLs(userID uint) [][2]string{
 	return st.smSt.GetUserURLs(userID)
 }
+
+func (st *DiskStorage) DeleteURLs(ids []string, userID uint) {
+	st.smSt.DeleteURLs(ids, userID)
+}

@@ -31,7 +31,11 @@ func (st *DBStorage) AddURL(longURL string, userID uint) (string, error) {
 }
 
 func (st *DBStorage) GetURL(id string) (string, error) {
-	return st.urlDB.GetURL(id)
+	url, isDeleted, err := st.urlDB.GetURL(id)
+	if isDeleted {
+		return url, URLIsDeleted
+	}
+	return url, err
 }
 
 func (st *DBStorage) AddManyURLs(longURLs []string, userID uint) []string {
@@ -45,4 +49,8 @@ func (st *DBStorage) CreateNewUser() uint {
 
 func (st *DBStorage) GetUserURLs(userID uint) [][2]string{
 	return st.urlDB.GetUserURLs(userID)
+}
+
+func (st *DBStorage) DeleteURLs(ids []string, userID uint) {
+	st.urlDB.DeleteURLs(ids, userID)
 }

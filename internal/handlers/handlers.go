@@ -21,14 +21,14 @@ func AppRouter(st storage.URLStorage) *chi.Mux {
 
 	r := chi.NewRouter()
 	r.Use(logger.RequestLogger)
-	r.Use(authMiddleware)
 	r.Use(gzipMiddleware)
 	r.Get("/{id}", getURL)
-	r.Post("/", http.HandlerFunc(postURL))
-	r.Post("/api/shorten", http.HandlerFunc(postJSON))
+	r.Post("/", authMiddleware(postURL))
+	r.Post("/api/shorten", authMiddleware(postJSON))
 	r.Get("/ping", pingDB)
-	r.Post("/api/shorten/batch", http.HandlerFunc(postManyURL))
+	r.Post("/api/shorten/batch", authMiddleware(postManyURL))
 	r.Get("/api/user/urls", getUserURLs)
+	r.Delete("/api/user/urls", authMiddleware(deleteURLs))
 	
 	return r
 }
@@ -61,6 +61,10 @@ func postURL(w http.ResponseWriter, r *http.Request) {
 func getURL(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	longURL, err := urlStorage.GetURL(id)
+	if errors.Is(err, storage.URLIsDeleted) {
+		w.WriteHeader(http.StatusGone)
+		return
+	}
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -197,4 +201,19 @@ func getUserURLs(w http.ResponseWriter, r *http.Request) {
 	body, _ := json.Marshal(resp)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(body)
+}
+
+func deleteURLs(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(userIDKey{}).(uint)
+	var (
+		buf bytes.Buffer
+		ids []string
+	)
+	buf.ReadFrom(r.Body)
+	defer r.Body.Close()
+
+	json.Unmarshal(buf.Bytes(), &ids)
+	urlStorage.DeleteURLs(ids, userID)
+
+	w.WriteHeader(http.StatusAccepted)
 }

@@ -61,3 +61,7 @@ func (st *SimpleStorage) GetUserURLs(userID uint) [][2]string{
 	}
 	return ans
 }
+
+func (st *SimpleStorage) DeleteURLs(ids []string, userID uint) {
+	// TODO
+}

@@ -7,11 +7,16 @@ type URLStorage interface {
 	GetURL(id string) (string, error)
 	AddManyURLs(longURLs []string, userID uint) []string
 	CreateNewUser() uint
-	GetUserURLs(userID uint) [][2]string 
+	GetUserURLs(userID uint) [][2]string
+	DeleteURLs(ids []string, userID uint)
 }
 
-var URLAlreadyExistsError error
+var (
+	URLAlreadyExistsError error
+	URLIsDeleted error
+)
 
 func init() {
 	URLAlreadyExistsError = errors.New("trying to add existing url")
+	URLIsDeleted = errors.New("url has been deleted")
 }
