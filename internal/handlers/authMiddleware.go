@@ -19,7 +19,7 @@ type Claims struct {
 
 func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var userID string = "";
+		var userID string;
 		cookie, err := r.Cookie("JWT")
 		if err == nil {
 			token := cookie.Value
