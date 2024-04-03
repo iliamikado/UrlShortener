@@ -1,20 +1,24 @@
 package storage
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/google/uuid"
+)
 
 type SimpleStorage struct {
-	m map[string]string
-	usersURLs map[uint][]string
+	m         map[string]string
+	usersURLs map[string][]string
 }
 
 func NewSimpleStorage() *SimpleStorage {
 	var st SimpleStorage
 	st.m = make(map[string]string)
-	st.usersURLs = make(map[uint][]string)
+	st.usersURLs = make(map[string][]string)
 	return &st
 }
 
-func (st *SimpleStorage) AddURL(longURL string, userID uint) (string, error) {
+func (st *SimpleStorage) AddURL(longURL string, userID string) (string, error) {
 	var newID string
 	for id := randomID(); newID == ""; id = randomID() {
 		if _, exist := st.m[id]; !exist {
@@ -34,7 +38,7 @@ func (st *SimpleStorage) GetURL(id string) (string, error) {
 	}
 }
 
-func (st *SimpleStorage) AddManyURLs(longURLs []string, userID uint) []string {
+func (st *SimpleStorage) AddManyURLs(longURLs []string, userID string) []string {
 	var ids []string
 	for _, url := range longURLs {
 		id, _ := st.AddURL(url, userID)
@@ -43,18 +47,11 @@ func (st *SimpleStorage) AddManyURLs(longURLs []string, userID uint) []string {
 	return ids
 }
 
-func (st *SimpleStorage) CreateNewUser() uint {
-	var id uint = 1;
-	for key := range st.usersURLs {
-		if id <= key {
-			id = key + 1
-		}
-	}
-	st.usersURLs[id] = make([]string, 0)
-	return id
+func (st *SimpleStorage) CreateNewUser() string {
+	return uuid.NewString()
 }
 
-func (st *SimpleStorage) GetUserURLs(userID uint) [][2]string{
+func (st *SimpleStorage) GetUserURLs(userID string) [][2]string {
 	var ans = make([][2]string, len(st.usersURLs[userID]))
 	for i, urlID := range st.usersURLs[userID] {
 		ans[i] = [2]string{urlID, st.m[urlID]}
@@ -62,6 +59,6 @@ func (st *SimpleStorage) GetUserURLs(userID uint) [][2]string{
 	return ans
 }
 
-func (st *SimpleStorage) DeleteURLs(ids []string, userID uint) {
+func (st *SimpleStorage) DeleteURLs(ids []string, userID string) {
 	// TODO
 }

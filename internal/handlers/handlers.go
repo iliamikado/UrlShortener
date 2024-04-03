@@ -29,11 +29,11 @@ func AppRouter(st storage.URLStorage) *chi.Mux {
 	r.Post("/api/shorten/batch", authMiddleware(postManyURL))
 	r.Get("/api/user/urls", getUserURLs)
 	r.Delete("/api/user/urls", authMiddleware(deleteURLs))
-	
+
 	return r
 }
 
-func createShortURL(longURL string, userID uint) (string, error) {
+func createShortURL(longURL string, userID string) (string, error) {
 	logger.Log.Info("Get longUrl = " + longURL)
 	id, err := urlStorage.AddURL(longURL, userID)
 	shortURL := config.ResultAddress + "/" + id
@@ -47,7 +47,7 @@ func postURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	longURL := string(body)
-	userID := r.Context().Value(userIDKey{}).(uint)
+	userID := r.Context().Value(userIDKey{}).(string)
 	shortURL, err := createShortURL(longURL, userID)
 	w.Header().Set("Content-Type", "text/plain")
 	if err != nil && errors.Is(err, storage.URLAlreadyExistsError) {
@@ -75,10 +75,10 @@ func getURL(w http.ResponseWriter, r *http.Request) {
 
 type (
 	RequestJSON struct {
-		URL		string	`json:"url"`
+		URL string `json:"url"`
 	}
 	ResponseJSON struct {
-		Result	string	`json:"result"`
+		Result string `json:"result"`
 	}
 )
 
@@ -95,20 +95,20 @@ func postJSON(w http.ResponseWriter, r *http.Request) {
 	}
 	if err = json.Unmarshal(buf.Bytes(), &req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-        return
+		return
 	}
 	longURL := req.URL
-	userID := r.Context().Value(userIDKey{}).(uint)
+	userID := r.Context().Value(userIDKey{}).(string)
 	shortURL, createErr := createShortURL(longURL, userID)
 	resp := ResponseJSON{shortURL}
-	
+
 	var body []byte
 	if body, err = json.Marshal(resp); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-        return
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if createErr != nil && errors.Is(createErr, storage.URLAlreadyExistsError)  {
+	if createErr != nil && errors.Is(createErr, storage.URLAlreadyExistsError) {
 		w.WriteHeader(http.StatusConflict)
 	} else {
 		w.WriteHeader(http.StatusCreated)
@@ -128,12 +128,12 @@ func pingDB(w http.ResponseWriter, r *http.Request) {
 
 type (
 	RequestBatchItem struct {
-		CorrelationID 	string	`json:"correlation_id"`
-		OriginalURL		string	`json:"original_url"`
+		CorrelationID string `json:"correlation_id"`
+		OriginalURL   string `json:"original_url"`
 	}
 	ResponseBatchItem struct {
-		CorrelationID 	string	`json:"correlation_id"`
-		ShortURL		string	`json:"short_url"`
+		CorrelationID string `json:"correlation_id"`
+		ShortURL      string `json:"short_url"`
 	}
 )
 
@@ -150,23 +150,23 @@ func postManyURL(w http.ResponseWriter, r *http.Request) {
 	}
 	if err = json.Unmarshal(buf.Bytes(), &req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-        return
+		return
 	}
 	longURLs := make([]string, len(req))
 	for i, x := range req {
 		longURLs[i] = x.OriginalURL
 	}
-	userID := r.Context().Value(userIDKey{}).(uint)
+	userID := r.Context().Value(userIDKey{}).(string)
 	ids := urlStorage.AddManyURLs(longURLs, userID)
 	resp := make([]ResponseBatchItem, len(ids))
 	for i, x := range ids {
 		resp[i] = ResponseBatchItem{req[i].CorrelationID, config.ResultAddress + "/" + x}
 	}
-	
+
 	var body []byte
 	if body, err = json.Marshal(resp); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-        return
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -174,8 +174,8 @@ func postManyURL(w http.ResponseWriter, r *http.Request) {
 }
 
 type ResponseUserURL struct {
-	ShortURL	string	`json:"short_url"`
-	OriginalURL	string	`json:"original_url"`
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
 }
 
 func getUserURLs(w http.ResponseWriter, r *http.Request) {
@@ -204,7 +204,7 @@ func getUserURLs(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteURLs(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value(userIDKey{}).(uint)
+	userID := r.Context().Value(userIDKey{}).(string)
 	var (
 		buf bytes.Buffer
 		ids []string

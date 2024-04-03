@@ -15,10 +15,10 @@ type FileSaver struct {
 }
 
 type SavedURL struct {
-	ID 			string	`json:"uuid"`
-	ShortURL 	string	`json:"short_url"`
-	OriginURL 	string	`json:"origin_url"`
-	UserID		uint	`json:"user_id"`
+	ID        string `json:"uuid"`
+	ShortURL  string `json:"short_url"`
+	OriginURL string `json:"origin_url"`
+	UserID    string `json:"user_id"`
 }
 
 func NewFileSaver(pathToFile string) *FileSaver {
@@ -28,9 +28,9 @@ func NewFileSaver(pathToFile string) *FileSaver {
 	return &FileSaver{file}
 }
 
-func (fs *FileSaver) GetAllData() (map[string]string, map[uint][]string) {
+func (fs *FileSaver) GetAllData() (map[string]string, map[string][]string) {
 	m := make(map[string]string)
-	usersURLs := make(map[uint][]string)
+	usersURLs := make(map[string][]string)
 	b, _ := io.ReadAll(fs.file)
 	for _, s := range strings.Split(string(b), "\n") {
 		var savedURL SavedURL

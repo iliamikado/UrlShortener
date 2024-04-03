@@ -14,12 +14,12 @@ type userIDKey struct {}
 
 type Claims struct {
     jwt.RegisteredClaims
-    UserID uint
+    UserID string
 }
 
 func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var userID uint = 0;
+		var userID string = "";
 		cookie, err := r.Cookie("JWT")
 		if err == nil {
 			token := cookie.Value
@@ -37,7 +37,7 @@ func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func buildJWTString(userID uint) string {
+func buildJWTString(userID string) string {
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims {
         RegisteredClaims: jwt.RegisteredClaims{},
         UserID: userID,
@@ -47,7 +47,7 @@ func buildJWTString(userID uint) string {
     return tokenString
 }
 
-func getUserID(tokenString string) (uint, error) {
+func getUserID(tokenString string) (string, error) {
     claims := &Claims{}
     token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -57,11 +57,11 @@ func getUserID(tokenString string) (uint, error) {
     })
 
 	if err != nil {
-        return 0, err
+        return "", err
     }
 
     if !token.Valid {
-        return 0, errors.New("token is not valid")
+        return "", errors.New("token is not valid")
     }
 
     return claims.UserID, nil

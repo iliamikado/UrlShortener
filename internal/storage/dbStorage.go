@@ -3,6 +3,7 @@ package storage
 import (
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/iliamikado/UrlShortener/internal/db"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -19,7 +20,7 @@ func NewDBStorage(urlDB *db.URLShortenerDB) *DBStorage {
 	return &st
 }
 
-func (st *DBStorage) AddURL(longURL string, userID uint) (string, error) {
+func (st *DBStorage) AddURL(longURL string, userID string) (string, error) {
 	var err *pgconn.PgError
 	id, e := st.urlDB.AddURL(longURL, userID, randomID)
 	errors.As(e, &err)
@@ -38,19 +39,19 @@ func (st *DBStorage) GetURL(id string) (string, error) {
 	return url, err
 }
 
-func (st *DBStorage) AddManyURLs(longURLs []string, userID uint) []string {
+func (st *DBStorage) AddManyURLs(longURLs []string, userID string) []string {
 	ids, _ := st.urlDB.AddManyURLs(longURLs, userID, randomID)
 	return ids
 }
 
-func (st *DBStorage) CreateNewUser() uint {
-	return st.urlDB.CreateNewUser()
+func (st *DBStorage) CreateNewUser() string {
+	return uuid.NewString()
 }
 
-func (st *DBStorage) GetUserURLs(userID uint) [][2]string{
+func (st *DBStorage) GetUserURLs(userID string) [][2]string {
 	return st.urlDB.GetUserURLs(userID)
 }
 
-func (st *DBStorage) DeleteURLs(ids []string, userID uint) {
-	st.urlDB.DeleteURLs(ids, userID)
+func (st *DBStorage) DeleteURLs(ids []string, userID string) {
+	go st.urlDB.DeleteURLs(ids, userID)
 }

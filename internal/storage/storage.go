@@ -3,12 +3,12 @@ package storage
 import "errors"
 
 type URLStorage interface {
-	AddURL(url string, userID uint) (string, error)
+	AddURL(url string, userID string) (string, error)
 	GetURL(id string) (string, error)
-	AddManyURLs(longURLs []string, userID uint) []string
-	CreateNewUser() uint
-	GetUserURLs(userID uint) [][2]string
-	DeleteURLs(ids []string, userID uint)
+	AddManyURLs(longURLs []string, userID string) []string
+	CreateNewUser() string
+	GetUserURLs(userID string) [][2]string
+	DeleteURLs(ids []string, userID string)
 }
 
 var (
