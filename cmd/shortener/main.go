@@ -23,8 +23,8 @@ func main() {
 
 func run() error {
 	if err := logger.Initialize(config.LoggerLevel); err != nil {
-        return err
-    }
+		return err
+	}
 
 	urlStorage := createStorageFromConfig()
 	r := handlers.AppRouter(urlStorage)
@@ -37,10 +37,10 @@ func run() error {
 }
 
 func createStorageFromConfig() storage.URLStorage {
-	if (config.DatabaseDsn != "") {
+	if config.DatabaseDsn != "" {
 		db.Initialize(config.DatabaseDsn)
 		return storage.NewDBStorage(&db.URLDB)
-	} else if (config.FileStoragePath != "") {
+	} else if config.FileStoragePath != "" {
 		return storage.NewDiskStorage(config.FileStoragePath)
 	} else {
 		return storage.NewSimpleStorage()

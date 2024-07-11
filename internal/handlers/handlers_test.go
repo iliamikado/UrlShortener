@@ -17,10 +17,11 @@ func CreateURLStorage() {
 }
 
 const charset = "abcdefghijklmnopqrstuvwxyz"
+
 func randomURL() string {
 	b := make([]byte, 10)
 	for i := range b {
-	  b[i] = charset[rand.Intn(len(charset))]
+		b[i] = charset[rand.Intn(len(charset))]
 	}
 	return "https://" + string(b) + ".com"
 }
@@ -48,7 +49,7 @@ func BenchmarkGetShortURL(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		shortURL, _ := urlStorage.AddURL(randomURL(), userID)
-		w, r := CreateReqAndRes(http.MethodGet, "/" + shortURL, nil)
+		w, r := CreateReqAndRes(http.MethodGet, "/"+shortURL, nil)
 		b.StartTimer()
 		getURL(w, r)
 	}

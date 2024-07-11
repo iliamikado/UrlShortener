@@ -6,12 +6,12 @@ import (
 )
 
 var (
-	LaunchAddress string
-	ResultAddress string
-	LoggerLevel string
+	LaunchAddress   string
+	ResultAddress   string
+	LoggerLevel     string
 	FileStoragePath string
-	DatabaseDsn string
-	DebugAddress string
+	DatabaseDsn     string
+	DebugAddress    string
 )
 
 func ParseConfig() {
