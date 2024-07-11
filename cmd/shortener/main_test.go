@@ -8,11 +8,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/iliamikado/UrlShortener/internal/config"
 	"github.com/iliamikado/UrlShortener/internal/handlers"
 	"github.com/iliamikado/UrlShortener/internal/storage"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestMethodPOST(t *testing.T) {

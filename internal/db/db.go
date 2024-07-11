@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/iliamikado/UrlShortener/internal/logger"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
+
+	"github.com/iliamikado/UrlShortener/internal/logger"
 )
 
 type URLShortenerDB struct {

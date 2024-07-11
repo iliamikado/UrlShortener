@@ -4,9 +4,10 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"github.com/iliamikado/UrlShortener/internal/db"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
+
+	"github.com/iliamikado/UrlShortener/internal/db"
 )
 
 type DBStorage struct {
