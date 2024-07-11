@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	_ "net/http/pprof"
 
 	"go.uber.org/zap"
 
@@ -29,6 +30,9 @@ func run() error {
 	r := handlers.AppRouter(urlStorage)
 
 	logger.Log.Info("Running server", zap.String("address", config.LaunchAddress))
+	go func() {
+		http.ListenAndServe(config.DebugAddress, nil)
+	}()
 	return http.ListenAndServe(config.LaunchAddress, r)
 }
 
