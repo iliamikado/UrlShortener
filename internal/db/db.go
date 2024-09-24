@@ -1,3 +1,4 @@
+// Пакет для работы с базой данных
 package db
 
 import (
@@ -18,8 +19,10 @@ type URLShortenerDB struct {
 	db *sql.DB
 }
 
+// URLDB - глобальная переменная для обращения к базе данных.
 var URLDB URLShortenerDB
 
+// Функция для подключения к базе данных.
 func Initialize(host string) {
 	logger.Log.Info("Opening DB with host=" + host)
 	db, err := sql.Open("pgx", host)
@@ -30,6 +33,7 @@ func Initialize(host string) {
 	URLDB = URLShortenerDB{db}
 }
 
+// Функция для создания таблицы сокращенных ссылок в БД.
 func (urlDB *URLShortenerDB) CreateURLTable() {
 	urlDB.db.Exec(`create table if not exists urls (
 		uuid text PRIMARY KEY NOT NULL,
@@ -39,6 +43,7 @@ func (urlDB *URLShortenerDB) CreateURLTable() {
 	);`)
 }
 
+// Функция для добавления ссылки в БД. Возвращает id.
 func (urlDB *URLShortenerDB) AddURL(longURL string, userID string, getID func() string) (string, error) {
 	var err error
 	var id string
@@ -53,6 +58,7 @@ func (urlDB *URLShortenerDB) AddURL(longURL string, userID string, getID func() 
 	return id, err
 }
 
+// Функция для добавления нескольких ссылок в БД. Возвращает массив из id.
 func (urlDB *URLShortenerDB) AddManyURLs(longURLs []string, userID string, getID func() string) ([]string, error) {
 	tx, _ := urlDB.db.Begin()
 	stmt, _ := tx.Prepare(`insert into urls values ($1, $2, $3)`)

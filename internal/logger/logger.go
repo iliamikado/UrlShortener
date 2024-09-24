@@ -1,3 +1,4 @@
+// Пакет предоставляющий логгер
 package logger
 
 import (

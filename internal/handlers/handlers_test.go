@@ -39,7 +39,7 @@ func BenchmarkPostURL(b *testing.B) {
 		b.StopTimer()
 		w, r := CreateReqAndRes(http.MethodPost, "/", strings.NewReader(randomURL()))
 		b.StartTimer()
-		postURL(w, r)
+		PostURL(w, r)
 	}
 }
 
@@ -51,6 +51,13 @@ func BenchmarkGetShortURL(b *testing.B) {
 		shortURL, _ := urlStorage.AddURL(randomURL(), userID)
 		w, r := CreateReqAndRes(http.MethodGet, "/"+shortURL, nil)
 		b.StartTimer()
-		getURL(w, r)
+		GetURL(w, r)
 	}
+}
+
+func ExamplePostURL() {
+	CreateURLStorage()
+	url := "http://ya.ru"
+	w, r := CreateReqAndRes(http.MethodPost, "/", strings.NewReader(url))
+	PostURL(w, r)
 }
