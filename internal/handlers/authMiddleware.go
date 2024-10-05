@@ -10,16 +10,16 @@ import (
 
 const SecretKey = "secret key"
 
-type userIDKey struct {}
+type userIDKey struct{}
 
 type Claims struct {
-    jwt.RegisteredClaims
-    UserID string
+	jwt.RegisteredClaims
+	UserID string
 }
 
 func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var userID string;
+		var userID string
 		cookie, err := r.Cookie("JWT")
 		if err == nil {
 			token := cookie.Value
@@ -38,31 +38,31 @@ func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func buildJWTString(userID string) string {
-    token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims {
-        RegisteredClaims: jwt.RegisteredClaims{},
-        UserID: userID,
-    })
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
+		RegisteredClaims: jwt.RegisteredClaims{},
+		UserID:           userID,
+	})
 
-    tokenString, _ := token.SignedString([]byte(SecretKey))
-    return tokenString
+	tokenString, _ := token.SignedString([]byte(SecretKey))
+	return tokenString
 }
 
 func getUserID(tokenString string) (string, error) {
-    claims := &Claims{}
-    token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
+	claims := &Claims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-            return nil, errors.New("unexpected signing method")
-        }
-        return []byte(SecretKey), nil
-    })
+			return nil, errors.New("unexpected signing method")
+		}
+		return []byte(SecretKey), nil
+	})
 
 	if err != nil {
-        return "", err
-    }
+		return "", err
+	}
 
-    if !token.Valid {
-        return "", errors.New("token is not valid")
-    }
+	if !token.Valid {
+		return "", errors.New("token is not valid")
+	}
 
-    return claims.UserID, nil
+	return claims.UserID, nil
 }

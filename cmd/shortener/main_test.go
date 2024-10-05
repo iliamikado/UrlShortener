@@ -8,11 +8,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/iliamikado/UrlShortener/internal/config"
 	"github.com/iliamikado/UrlShortener/internal/handlers"
 	"github.com/iliamikado/UrlShortener/internal/storage"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestMethodPOST(t *testing.T) {
@@ -25,7 +26,7 @@ func TestMethodPOST(t *testing.T) {
 		defer resp.Body.Close()
 		assert.Equal(t, http.StatusCreated, resp.StatusCode, "Wrong status code")
 		assert.NotNil(t, shortURL, "No short URL in response")
-		assert.Contains(t, shortURL, srv.URL, "Short URL should contains server adress, got " + shortURL)
+		assert.Contains(t, shortURL, srv.URL, "Short URL should contains server adress, got "+shortURL)
 	})
 
 	t.Run("without body", func(t *testing.T) {
@@ -63,10 +64,10 @@ func TestMethodPostJSON(t *testing.T) {
 
 	type (
 		RequestJSON struct {
-			URL		string	`json:"url"`
+			URL string `json:"url"`
 		}
 		ResponseJSON struct {
-			Result	string	`json:"result"`
+			Result string `json:"result"`
 		}
 	)
 

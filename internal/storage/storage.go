@@ -13,7 +13,7 @@ type URLStorage interface {
 
 var (
 	URLAlreadyExistsError error
-	URLIsDeleted error
+	URLIsDeleted          error
 )
 
 func init() {

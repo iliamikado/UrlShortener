@@ -6,11 +6,12 @@ import (
 )
 
 var (
-	LaunchAddress string
-	ResultAddress string
-	LoggerLevel string
+	LaunchAddress   string
+	ResultAddress   string
+	LoggerLevel     string
 	FileStoragePath string
-	DatabaseDsn string
+	DatabaseDsn     string
+	DebugAddress    string
 )
 
 func ParseConfig() {
@@ -19,6 +20,7 @@ func ParseConfig() {
 	flag.StringVar(&LoggerLevel, "l", "info", "Set Logger level")
 	flag.StringVar(&FileStoragePath, "f", "/tmp/short-url-db.json", "Set file storage path for urls")
 	flag.StringVar(&DatabaseDsn, "d", "", "Set DB adress")
+	flag.StringVar(&DebugAddress, "g", "localhost:8081", "Set debug address")
 	flag.Parse()
 
 	if serverAddress := os.Getenv("SERVER_ADDRESS"); serverAddress != "" {

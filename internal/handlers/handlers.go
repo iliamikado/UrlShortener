@@ -1,3 +1,4 @@
+// Пакет, где реализованы хэндлеры и миддлвары
 package handlers
 
 import (
@@ -8,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+
 	"github.com/iliamikado/UrlShortener/internal/config"
 	"github.com/iliamikado/UrlShortener/internal/db"
 	"github.com/iliamikado/UrlShortener/internal/logger"
@@ -16,19 +18,20 @@ import (
 
 var urlStorage storage.URLStorage
 
+// Создает Router с хендлерами, нужными для приложения и использующий переданное хранилище.
 func AppRouter(st storage.URLStorage) *chi.Mux {
 	urlStorage = st
 
 	r := chi.NewRouter()
 	r.Use(logger.RequestLogger)
 	r.Use(gzipMiddleware)
-	r.Get("/{id}", getURL)
-	r.Post("/", authMiddleware(postURL))
-	r.Post("/api/shorten", authMiddleware(postJSON))
-	r.Get("/ping", pingDB)
-	r.Post("/api/shorten/batch", authMiddleware(postManyURL))
-	r.Get("/api/user/urls", getUserURLs)
-	r.Delete("/api/user/urls", authMiddleware(deleteURLs))
+	r.Get("/{id}", GetURL)
+	r.Post("/", authMiddleware(PostURL))
+	r.Post("/api/shorten", authMiddleware(PostJSON))
+	r.Get("/ping", PingDB)
+	r.Post("/api/shorten/batch", authMiddleware(PostManyURL))
+	r.Get("/api/user/urls", GetUserURLs)
+	r.Delete("/api/user/urls", authMiddleware(DeleteURLs))
 
 	return r
 }
@@ -40,7 +43,8 @@ func createShortURL(longURL string, userID string) (string, error) {
 	return shortURL, err
 }
 
-func postURL(w http.ResponseWriter, r *http.Request) {
+// postURL сохраняет длинный url и возвращает короткий.
+func PostURL(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil || len(body) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
@@ -58,7 +62,8 @@ func postURL(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(shortURL))
 }
 
-func getURL(w http.ResponseWriter, r *http.Request) {
+// getURL обрабатывает короткие url и возвращает длинные.
+func GetURL(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	longURL, err := urlStorage.GetURL(id)
 	if errors.Is(err, storage.URLIsDeleted) {
@@ -82,7 +87,8 @@ type (
 	}
 )
 
-func postJSON(w http.ResponseWriter, r *http.Request) {
+// postJSON сохраняет длинный url и возвращает короткий. Получение и отправка данных происходит в формате json.
+func PostJSON(w http.ResponseWriter, r *http.Request) {
 	var (
 		req RequestJSON
 		buf bytes.Buffer
@@ -116,7 +122,8 @@ func postJSON(w http.ResponseWriter, r *http.Request) {
 	w.Write(body)
 }
 
-func pingDB(w http.ResponseWriter, r *http.Request) {
+// pingDB проверяет есть ли соединение с базой данных.
+func PingDB(w http.ResponseWriter, r *http.Request) {
 	err := db.URLDB.Ping()
 	if err != nil {
 		logger.Log.Error(err.Error())
@@ -137,7 +144,8 @@ type (
 	}
 )
 
-func postManyURL(w http.ResponseWriter, r *http.Request) {
+// postManyURL сокращает одновременно несколько длинных url. Получение и отправка в формате json.
+func PostManyURL(w http.ResponseWriter, r *http.Request) {
 	var (
 		req []RequestBatchItem
 		buf bytes.Buffer
@@ -178,7 +186,8 @@ type ResponseUserURL struct {
 	OriginalURL string `json:"original_url"`
 }
 
-func getUserURLs(w http.ResponseWriter, r *http.Request) {
+// getUserURLs возвращает все urls (короткие и длинные версии) сохранненые пользователем.
+func GetUserURLs(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("JWT")
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -203,7 +212,8 @@ func getUserURLs(w http.ResponseWriter, r *http.Request) {
 	w.Write(body)
 }
 
-func deleteURLs(w http.ResponseWriter, r *http.Request) {
+// deleteURLs удаляет urls созданные пользователем с переданными id.
+func DeleteURLs(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(userIDKey{}).(string)
 	var (
 		buf bytes.Buffer
