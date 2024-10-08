@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	_ "net/http/pprof"
 
@@ -13,7 +14,18 @@ import (
 	"github.com/iliamikado/UrlShortener/internal/storage"
 )
 
+var (
+	buildVersion string = "N/A"
+	buildDate string = "N/A"
+	buildCommit string = "N/A"
+)
+
 func main() {
+
+	fmt.Println("Build version: " + buildVersion)
+	fmt.Println("Build date: " + buildDate)
+	fmt.Println("Build commit: " + buildCommit)
+
 	config.ParseConfig()
 
 	if err := run(); err != nil {
