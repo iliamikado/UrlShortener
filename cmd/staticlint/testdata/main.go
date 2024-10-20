@@ -5,11 +5,11 @@ import (
 )
 
 func main() {
-    os.Exit(0)		// want "os.Exit is forbidden"
+	os.Exit(0) // want "os.Exit is forbidden"
 	f()
 }
 
 func f() {
-	var a = 0;
-	a++;
+	var a = 0
+	a++
 }

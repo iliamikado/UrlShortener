@@ -1,6 +1,6 @@
 // Package for static check
 // Can be run by command go run ./cmd/staticlint/ ./...
-package main
+package staticlint
 
 import (
 	"go/ast"
@@ -15,17 +15,17 @@ import (
 )
 
 func main() {
-    mychecks := []*analysis.Analyzer{
+	mychecks := []*analysis.Analyzer{
 		OsExitAnalyzer,
 		printf.Analyzer,
 		shadow.Analyzer,
 		structtag.Analyzer,
-    }
-    for _, v := range staticcheck.Analyzers {
-        mychecks = append(mychecks, v.Analyzer)
-    }
+	}
+	for _, v := range staticcheck.Analyzers {
+		mychecks = append(mychecks, v.Analyzer)
+	}
 	multichecker.Main(
-		mychecks...
+		mychecks...,
 	)
 }
 
@@ -39,11 +39,9 @@ func osExitAnalyzerRun(pass *analysis.Pass) (interface{}, error) {
 	for _, file := range pass.Files {
 		ast.Inspect(file, func(node ast.Node) bool {
 			if call, ok := node.(*ast.SelectorExpr); ok {
-				if x, ok := call.X.(*ast.Ident); ok {
-					if x.Name == "os" && call.Sel.Name == "Exit" {
-						pass.Reportf(call.Pos(), "os.Exit is forbidden")
-					}
-				}				
+				if x, ok := call.X.(*ast.Ident); ok && x.Name == "os" && call.Sel.Name == "Exit" {
+					pass.Reportf(call.Pos(), "os.Exit is forbidden")
+				}
 			}
 			return true
 		})
