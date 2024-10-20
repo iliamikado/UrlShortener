@@ -7,17 +7,17 @@ import (
 
 var (
 	// LaunchAddress - адрес запуска сервера
-	LaunchAddress   string
+	LaunchAddress string
 	// ResultAddress - адрес результата для коротких ссылок
-	ResultAddress   string
+	ResultAddress string
 	// LoggerLevel - уровень логгера
-	LoggerLevel     string
+	LoggerLevel string
 	// FileStoragePath - путь до файла с сохранением
 	FileStoragePath string
 	// DatabaseDsn - строка для подключения к бд
-	DatabaseDsn     string
+	DatabaseDsn string
 	// DebugAddress - адрес дебага
-	DebugAddress    string
+	DebugAddress string
 )
 
 // ParseConfig - чтение конфига из флагов и переменных окружения
