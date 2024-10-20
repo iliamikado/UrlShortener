@@ -8,10 +8,12 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
+// SecretKey - секретный ключ
 const SecretKey = "secret key"
 
 type userIDKey struct{}
 
+// Claims - данные в jwt
 type Claims struct {
 	jwt.RegisteredClaims
 	UserID string

@@ -54,10 +54,3 @@ func BenchmarkGetShortURL(b *testing.B) {
 		GetURL(w, r)
 	}
 }
-
-func ExamplePostURL() {
-	CreateURLStorage()
-	url := "http://ya.ru"
-	w, r := CreateReqAndRes(http.MethodPost, "/", strings.NewReader(url))
-	PostURL(w, r)
-}
