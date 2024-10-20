@@ -78,6 +78,7 @@ func GetURL(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
+// Структуры для json запросов
 type (
 	RequestJSON struct {
 		URL string `json:"url"`
@@ -133,6 +134,7 @@ func PingDB(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Структуры для множественного запроса
 type (
 	RequestBatchItem struct {
 		CorrelationID string `json:"correlation_id"`
@@ -181,6 +183,7 @@ func PostManyURL(w http.ResponseWriter, r *http.Request) {
 	w.Write(body)
 }
 
+// ResponseUserURL - ответ пользователю
 type ResponseUserURL struct {
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`

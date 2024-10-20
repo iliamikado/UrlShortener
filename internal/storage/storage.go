@@ -2,6 +2,7 @@ package storage
 
 import "errors"
 
+// Функции хранилища
 type URLStorage interface {
 	AddURL(url string, userID string) (string, error)
 	GetURL(id string) (string, error)
@@ -11,6 +12,7 @@ type URLStorage interface {
 	DeleteURLs(ids []string, userID string)
 }
 
+// Ошибки при работе с хранилищем
 var (
 	URLAlreadyExistsError error
 	URLIsDeleted          error

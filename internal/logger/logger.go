@@ -10,6 +10,7 @@ import (
 
 var Log *zap.Logger = zap.NewNop()
 
+// Initialize - создание логгера
 func Initialize(level string) error {
 	lvl, err := zap.ParseAtomicLevel(level)
 	if err != nil {
@@ -38,17 +39,20 @@ type (
 	}
 )
 
+// Реализация http.ResponseWriter
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	size, err := r.ResponseWriter.Write(b)
 	r.responseData.size += size
 	return size, err
 }
 
+// Реализация http.ResponseWriter
 func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	r.ResponseWriter.WriteHeader(statusCode)
 	r.responseData.status = statusCode
 }
 
+// RequestLogger - добавление логирования хэндлеру
 func RequestLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		responseData := &responseData{

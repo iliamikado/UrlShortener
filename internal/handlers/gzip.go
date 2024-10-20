@@ -24,10 +24,12 @@ func (c *compressWriter) needGzip() bool {
 	return strings.Contains(contentType, "application/json") || strings.Contains(contentType, "text/html")
 }
 
+// Header - получить Header
 func (c *compressWriter) Header() http.Header {
 	return c.w.Header()
 }
 
+// Write - написать в writer
 func (c *compressWriter) Write(p []byte) (int, error) {
 	if c.needGzip() {
 		return c.zw.Write(p)
@@ -35,6 +37,7 @@ func (c *compressWriter) Write(p []byte) (int, error) {
 	return c.w.Write(p)
 }
 
+// WriteHeader - добавить header
 func (c *compressWriter) WriteHeader(statusCode int) {
 	if statusCode < 300 && c.needGzip() {
 		c.w.Header().Set("Content-Encoding", "gzip")
@@ -42,6 +45,7 @@ func (c *compressWriter) WriteHeader(statusCode int) {
 	c.w.WriteHeader(statusCode)
 }
 
+// Close - закрыть writer
 func (c *compressWriter) Close() error {
 	if c.needGzip() {
 		return c.zw.Close()
@@ -66,10 +70,12 @@ func newCompressReader(r io.ReadCloser) (*compressReader, error) {
 	}, nil
 }
 
+// Read - прочитать из reader
 func (c compressReader) Read(p []byte) (n int, err error) {
 	return c.zr.Read(p)
 }
 
+// Close - закрыть reader
 func (c *compressReader) Close() error {
 	if err := c.r.Close(); err != nil {
 		return err

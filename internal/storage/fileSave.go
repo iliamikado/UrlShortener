@@ -10,10 +10,12 @@ import (
 	"github.com/iliamikado/UrlShortener/internal/logger"
 )
 
+// Структура для работы с файлом
 type FileSaver struct {
 	file *os.File
 }
 
+// Структура для json представления сохранненой URL
 type SavedURL struct {
 	ID        string `json:"uuid"`
 	ShortURL  string `json:"short_url"`
@@ -21,6 +23,7 @@ type SavedURL struct {
 	UserID    string `json:"user_id"`
 }
 
+// Создание нового сохранителя
 func NewFileSaver(pathToFile string) *FileSaver {
 	logger.Log.Info("Create file with path " + pathToFile)
 	os.Mkdir(filepath.Dir(pathToFile), 0777)
@@ -28,6 +31,7 @@ func NewFileSaver(pathToFile string) *FileSaver {
 	return &FileSaver{file}
 }
 
+// Прочитать все из файла
 func (fs *FileSaver) GetAllData() (map[string]string, map[string][]string) {
 	m := make(map[string]string)
 	usersURLs := make(map[string][]string)
@@ -43,6 +47,7 @@ func (fs *FileSaver) GetAllData() (map[string]string, map[string][]string) {
 	return m, usersURLs
 }
 
+// Добавить URL
 func (fs *FileSaver) AddURL(savedURL SavedURL) {
 	str, _ := json.Marshal(savedURL)
 	fs.file.WriteString(string(str) + "\n")

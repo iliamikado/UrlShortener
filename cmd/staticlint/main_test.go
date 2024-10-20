@@ -1,4 +1,4 @@
-package staticlint
+package main
 
 import (
 	"golang.org/x/tools/go/analysis/analysistest"

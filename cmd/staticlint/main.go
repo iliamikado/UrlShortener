@@ -1,6 +1,6 @@
 // Package for static check
 // Can be run by command go run ./cmd/staticlint/ ./...
-package staticlint
+package main
 
 import (
 	"go/ast"
@@ -29,6 +29,7 @@ func main() {
 	)
 }
 
+// Анализатор на os.Exit
 var OsExitAnalyzer = &analysis.Analyzer{
 	Name: "os_exit",
 	Doc:  "check for os.Exit",

@@ -15,6 +15,7 @@ import (
 	"github.com/iliamikado/UrlShortener/internal/logger"
 )
 
+// URLShortenerDB - структура работающая с БД
 type URLShortenerDB struct {
 	db *sql.DB
 }
@@ -81,6 +82,7 @@ func (urlDB *URLShortenerDB) AddManyURLs(longURLs []string, userID string, getID
 	return ids, tx.Commit()
 }
 
+// GetURL - функция возвращающая URL по id
 func (urlDB *URLShortenerDB) GetURL(id string) (string, bool, error) {
 	row := urlDB.db.QueryRow(`select long_url, is_deleted from urls where uuid = $1`, id)
 	var longURL string
@@ -89,6 +91,7 @@ func (urlDB *URLShortenerDB) GetURL(id string) (string, bool, error) {
 	return longURL, isDeleted, err
 }
 
+// GetIDByURL - функция возвращающая id по URL
 func (urlDB *URLShortenerDB) GetIDByURL(longURL string) (string, error) {
 	row := urlDB.db.QueryRow(`select uuid from urls where long_url = $1`, longURL)
 	var id string
@@ -96,6 +99,7 @@ func (urlDB *URLShortenerDB) GetIDByURL(longURL string) (string, error) {
 	return id, err
 }
 
+// GetUserURLs - функция возвращающая все URL пользователя
 func (urlDB *URLShortenerDB) GetUserURLs(userID string) [][2]string {
 	rows, _ := urlDB.db.Query("select uuid, long_url from urls where user_id = $1 and not is_deleted", userID)
 	defer rows.Close()
@@ -111,6 +115,7 @@ func (urlDB *URLShortenerDB) GetUserURLs(userID string) [][2]string {
 	return ans
 }
 
+// DeleteURLs - функция удаляющая URL по id у пользователя
 func (urlDB *URLShortenerDB) DeleteURLs(ids []string, userID string) {
 	tx, _ := urlDB.db.Begin()
 	valueStrings := make([]string, 0, len(ids))
@@ -128,10 +133,12 @@ func (urlDB *URLShortenerDB) DeleteURLs(ids []string, userID string) {
 	tx.Commit()
 }
 
+// Close - функция закрывающая связь с БД
 func (urlDB *URLShortenerDB) Close() {
 	urlDB.db.Close()
 }
 
+// Ping - проверка подключения к бд
 func (urlDB *URLShortenerDB) Ping() error {
 	return urlDB.db.PingContext(context.TODO())
 }

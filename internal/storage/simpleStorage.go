@@ -6,11 +6,13 @@ import (
 	"github.com/google/uuid"
 )
 
+// Структура для простого хранилища (в ОЗУ)
 type SimpleStorage struct {
 	m         map[string]string
 	usersURLs map[string][]string
 }
 
+// Создание простого хранилища
 func NewSimpleStorage() *SimpleStorage {
 	var st SimpleStorage
 	st.m = make(map[string]string)
@@ -18,6 +20,7 @@ func NewSimpleStorage() *SimpleStorage {
 	return &st
 }
 
+// Реализация URLStorage интерфейса
 func (st *SimpleStorage) AddURL(longURL string, userID string) (string, error) {
 	var newID string
 	for id := randomID(); newID == ""; id = randomID() {
@@ -30,6 +33,7 @@ func (st *SimpleStorage) AddURL(longURL string, userID string) (string, error) {
 	return newID, nil
 }
 
+// Реализация URLStorage интерфейса
 func (st *SimpleStorage) GetURL(id string) (string, error) {
 	if url, ok := st.m[id]; ok {
 		return url, nil
@@ -38,6 +42,7 @@ func (st *SimpleStorage) GetURL(id string) (string, error) {
 	}
 }
 
+// Реализация URLStorage интерфейса
 func (st *SimpleStorage) AddManyURLs(longURLs []string, userID string) []string {
 	var ids []string
 	for _, url := range longURLs {
@@ -47,10 +52,12 @@ func (st *SimpleStorage) AddManyURLs(longURLs []string, userID string) []string 
 	return ids
 }
 
+// Реализация URLStorage интерфейса
 func (st *SimpleStorage) CreateNewUser() string {
 	return uuid.NewString()
 }
 
+// Реализация URLStorage интерфейса
 func (st *SimpleStorage) GetUserURLs(userID string) [][2]string {
 	var ans = make([][2]string, len(st.usersURLs[userID]))
 	for i, urlID := range st.usersURLs[userID] {
@@ -59,6 +66,7 @@ func (st *SimpleStorage) GetUserURLs(userID string) [][2]string {
 	return ans
 }
 
+// Реализация URLStorage интерфейса
 func (st *SimpleStorage) DeleteURLs(ids []string, userID string) {
 	// TODO
 }

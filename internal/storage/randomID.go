@@ -2,6 +2,7 @@ package storage
 
 import "math/rand"
 
+// Константы для работы randomID
 const (
 	UppercaseA   = 65
 	LowercaseA   = 97
