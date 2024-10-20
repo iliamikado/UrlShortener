@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Log - логгер
 var Log *zap.Logger = zap.NewNop()
 
 // Initialize - создание логгера

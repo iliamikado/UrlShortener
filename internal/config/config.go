@@ -5,6 +5,7 @@ import (
 	"os"
 )
 
+// Переменные окружения и флаги
 var (
 	// LaunchAddress - адрес запуска сервера
 	LaunchAddress string
