@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"go.uber.org/zap"
 
@@ -26,9 +30,11 @@ func main() {
 
 	config.ParseConfig()
 
-	if err := run(); err != nil {
+	if err := run(); err != nil && err != http.ErrServerClosed {
 		panic(err)
 	}
+
+	fmt.Println("Server Shutdown gracefully")
 }
 
 func run() error {
@@ -43,10 +49,25 @@ func run() error {
 	go func() {
 		http.ListenAndServe(config.DebugAddress, nil)
 	}()
+
+	var srv = http.Server{
+		Addr:    config.LaunchAddress,
+		Handler: r,
+	}
+
+	sigint := make(chan os.Signal, 1)
+	signal.Notify(sigint, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigint
+		if err := srv.Shutdown(context.Background()); err != nil {
+			logger.Log.Info("HTTP server Shutdown. Errors: " + err.Error())
+		}
+	}()
+
 	if config.EnableHttps {
-		return http.ListenAndServeTLS(config.LaunchAddress, "cert.pem", "key.pem", r)
+		return srv.ListenAndServeTLS("cert.pem", "key.pem")
 	} else {
-		return http.ListenAndServe(config.LaunchAddress, r)
+		return srv.ListenAndServe()
 	}
 }
 
