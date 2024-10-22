@@ -21,8 +21,8 @@ var (
 	DatabaseDsn string
 	// DebugAddress - адрес дебага
 	DebugAddress string
-	// EnableHttps - включать ли https
-	EnableHttps bool
+	// EnableHTTPS - включать ли https
+	EnableHTTPS bool
 	// ConfigFile - название файла с конфигом
 	ConfigFile string
 )
@@ -33,7 +33,7 @@ type ConfigJSON struct {
 	BaseURL         string `json:"base_url"`
 	FileStoragePath string `json:"file_storage_path"`
 	DatabaseDsn     string `json:"database_dsn"`
-	EnableHttps     bool   `json:"enable_https"`
+	EnableHTTPS     bool   `json:"enable_https"`
 }
 
 // ParseConfig - чтение конфига из флагов и переменных окружения
@@ -44,7 +44,7 @@ func ParseConfig() {
 	flag.StringVar(&FileStoragePath, "f", "/tmp/short-url-db.json", "Set file storage path for urls")
 	flag.StringVar(&DatabaseDsn, "d", "", "Set DB adress")
 	flag.StringVar(&DebugAddress, "g", "localhost:8081", "Set debug address")
-	flag.BoolVar(&EnableHttps, "s", false, "Enable https")
+	flag.BoolVar(&EnableHTTPS, "s", false, "Enable https")
 	flag.StringVar(&ConfigFile, "c", "", "Set config file")
 	flag.Parse()
 
@@ -70,7 +70,7 @@ func ParseConfig() {
 			DatabaseDsn = configData.DatabaseDsn
 		}
 		if flag.Lookup("s") == nil {
-			EnableHttps = configData.EnableHttps
+			EnableHTTPS = configData.EnableHTTPS
 		}
 	}
 
@@ -90,6 +90,6 @@ func ParseConfig() {
 		DatabaseDsn = databaseDsn
 	}
 	if enableHttps := os.Getenv("ENABLE_HTTPS"); enableHttps == "true" {
-		EnableHttps = true
+		EnableHTTPS = true
 	}
 }

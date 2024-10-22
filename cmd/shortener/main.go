@@ -64,7 +64,7 @@ func run() error {
 		}
 	}()
 
-	if config.EnableHttps {
+	if config.EnableHTTPS {
 		return srv.ListenAndServeTLS("cert.pem", "key.pem")
 	} else {
 		return srv.ListenAndServe()
