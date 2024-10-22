@@ -19,6 +19,8 @@ var (
 	DatabaseDsn string
 	// DebugAddress - адрес дебага
 	DebugAddress string
+	// EnableHttps - включать ли https
+	EnableHttps bool
 )
 
 // ParseConfig - чтение конфига из флагов и переменных окружения
@@ -29,6 +31,7 @@ func ParseConfig() {
 	flag.StringVar(&FileStoragePath, "f", "/tmp/short-url-db.json", "Set file storage path for urls")
 	flag.StringVar(&DatabaseDsn, "d", "", "Set DB adress")
 	flag.StringVar(&DebugAddress, "g", "localhost:8081", "Set debug address")
+	flag.BoolVar(&EnableHttps, "s", false, "Enable https")
 	flag.Parse()
 
 	if serverAddress := os.Getenv("SERVER_ADDRESS"); serverAddress != "" {
@@ -45,5 +48,8 @@ func ParseConfig() {
 	}
 	if databaseDsn := os.Getenv("DATABASE_DSN"); databaseDsn != "" {
 		DatabaseDsn = databaseDsn
+	}
+	if enableHttps := os.Getenv("ENABLE_HTTPS"); enableHttps == "true" {
+		EnableHttps = true
 	}
 }

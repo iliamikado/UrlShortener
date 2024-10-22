@@ -43,7 +43,11 @@ func run() error {
 	go func() {
 		http.ListenAndServe(config.DebugAddress, nil)
 	}()
-	return http.ListenAndServe(config.LaunchAddress, r)
+	if config.EnableHttps {
+		return http.ListenAndServeTLS(config.LaunchAddress, "cert.pem", "key.pem", r)
+	} else {
+		return http.ListenAndServe(config.LaunchAddress, r)
+	}
 }
 
 func createStorageFromConfig() storage.URLStorage {
