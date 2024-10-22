@@ -1,7 +1,9 @@
 package config
 
 import (
+	"encoding/json"
 	"flag"
+	"io"
 	"os"
 )
 
@@ -21,7 +23,18 @@ var (
 	DebugAddress string
 	// EnableHttps - включать ли https
 	EnableHttps bool
+	// ConfigFile - название файла с конфигом
+	ConfigFile string
 )
+
+// ConfigJSON - формат конфиг файла
+type ConfigJSON struct {
+	ServerAddress   string `json:"server_address"`
+	BaseURL         string `json:"base_url"`
+	FileStoragePath string `json:"file_storage_path"`
+	DatabaseDsn     string `json:"database_dsn"`
+	EnableHttps     bool   `json:"enable_https"`
+}
 
 // ParseConfig - чтение конфига из флагов и переменных окружения
 func ParseConfig() {
@@ -32,7 +45,34 @@ func ParseConfig() {
 	flag.StringVar(&DatabaseDsn, "d", "", "Set DB adress")
 	flag.StringVar(&DebugAddress, "g", "localhost:8081", "Set debug address")
 	flag.BoolVar(&EnableHttps, "s", false, "Enable https")
+	flag.StringVar(&ConfigFile, "c", "", "Set config file")
 	flag.Parse()
+
+	if configFile := os.Getenv("CONFIG"); configFile != "" {
+		ConfigFile = configFile
+	}
+
+	if ConfigFile != "" {
+		file, _ := os.Open(ConfigFile)
+		b, _ := io.ReadAll(file)
+		var configData ConfigJSON
+		json.Unmarshal(b, &configData)
+		if flag.Lookup("a") == nil && configData.ServerAddress != "" {
+			LaunchAddress = configData.ServerAddress
+		}
+		if flag.Lookup("b") == nil && configData.BaseURL != "" {
+			ResultAddress = configData.BaseURL
+		}
+		if flag.Lookup("f") == nil && configData.FileStoragePath != "" {
+			FileStoragePath = configData.FileStoragePath
+		}
+		if flag.Lookup("d") == nil && configData.DatabaseDsn != "" {
+			DatabaseDsn = configData.DatabaseDsn
+		}
+		if flag.Lookup("s") == nil {
+			EnableHttps = configData.EnableHttps
+		}
+	}
 
 	if serverAddress := os.Getenv("SERVER_ADDRESS"); serverAddress != "" {
 		LaunchAddress = serverAddress
