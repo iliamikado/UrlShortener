@@ -89,7 +89,7 @@ func ParseConfig() {
 	if databaseDsn := os.Getenv("DATABASE_DSN"); databaseDsn != "" {
 		DatabaseDsn = databaseDsn
 	}
-	if enableHttps := os.Getenv("ENABLE_HTTPS"); enableHttps == "true" {
+	if enableHTTPS := os.Getenv("ENABLE_HTTPS"); enableHTTPS == "true" {
 		EnableHTTPS = true
 	}
 }
