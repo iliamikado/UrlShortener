@@ -233,6 +233,7 @@ func DeleteURLs(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 }
 
+// StatsResponse - ответ по статистике
 type StatsResponse struct {
 	Urls  int `json:"urls"`
 	Users int `json:"users"`
