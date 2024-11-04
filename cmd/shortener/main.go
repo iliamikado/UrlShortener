@@ -85,8 +85,8 @@ func runDegugServer() {
 }
 
 func createServer(addr string, handler http.Handler) *http.Server {
-    return &http.Server{
-        Addr:    addr,
-        Handler: handler,
-    }
+	return &http.Server{
+		Addr:    addr,
+		Handler: handler,
+	}
 }
