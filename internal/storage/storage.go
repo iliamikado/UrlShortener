@@ -10,6 +10,7 @@ type URLStorage interface {
 	CreateNewUser() string
 	GetUserURLs(userID string) [][2]string
 	DeleteURLs(ids []string, userID string)
+	GetStats() (int, int)
 }
 
 // Ошибки при работе с хранилищем
