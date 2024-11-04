@@ -31,10 +31,10 @@ func main() {
 	config.ParseConfig()
 
 	if err := run(); err != nil && err != http.ErrServerClosed {
-		panic(err)
+		logger.Log.Fatal("Server error: " + err.Error())
 	}
 
-	fmt.Println("Server Shutdown gracefully")
+	logger.Log.Info("Server Shutdown gracefully")
 }
 
 func run() error {
@@ -46,14 +46,10 @@ func run() error {
 	r := handlers.AppRouter(urlStorage)
 
 	logger.Log.Info("Running server", zap.String("address", config.LaunchAddress))
-	go func() {
-		http.ListenAndServe(config.DebugAddress, nil)
-	}()
 
-	var srv = http.Server{
-		Addr:    config.LaunchAddress,
-		Handler: r,
-	}
+	runDegugServer()
+
+	var srv = createServer(config.LaunchAddress, r)
 
 	sigint := make(chan os.Signal, 1)
 	signal.Notify(sigint, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
@@ -80,4 +76,17 @@ func createStorageFromConfig() storage.URLStorage {
 	} else {
 		return storage.NewSimpleStorage()
 	}
+}
+
+func runDegugServer() {
+	go func() {
+		http.ListenAndServe(config.DebugAddress, nil)
+	}()
+}
+
+func createServer(addr string, handler http.Handler) *http.Server {
+    return &http.Server{
+        Addr:    addr,
+        Handler: handler,
+    }
 }

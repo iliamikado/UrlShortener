@@ -27,8 +27,8 @@ var (
 	ConfigFile string
 )
 
-// ConfigJSON - формат конфиг файла
-type ConfigJSON struct {
+// FileConfig - формат конфиг файла
+type FileConfig struct {
 	ServerAddress   string `json:"server_address"`
 	BaseURL         string `json:"base_url"`
 	FileStoragePath string `json:"file_storage_path"`
@@ -55,7 +55,7 @@ func ParseConfig() {
 	if ConfigFile != "" {
 		file, _ := os.Open(ConfigFile)
 		b, _ := io.ReadAll(file)
-		var configData ConfigJSON
+		var configData FileConfig
 		json.Unmarshal(b, &configData)
 		if flag.Lookup("a") == nil && configData.ServerAddress != "" {
 			LaunchAddress = configData.ServerAddress
