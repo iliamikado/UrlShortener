@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"go.uber.org/zap"
 
@@ -26,9 +30,11 @@ func main() {
 
 	config.ParseConfig()
 
-	if err := run(); err != nil {
-		panic(err)
+	if err := run(); err != nil && err != http.ErrServerClosed {
+		logger.Log.Fatal("Server error: " + err.Error())
 	}
+
+	logger.Log.Info("Server Shutdown gracefully")
 }
 
 func run() error {
@@ -40,10 +46,25 @@ func run() error {
 	r := handlers.AppRouter(urlStorage)
 
 	logger.Log.Info("Running server", zap.String("address", config.LaunchAddress))
+
+	runDegugServer()
+
+	var srv = createServer(config.LaunchAddress, r)
+
+	sigint := make(chan os.Signal, 1)
+	signal.Notify(sigint, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
-		http.ListenAndServe(config.DebugAddress, nil)
+		<-sigint
+		if err := srv.Shutdown(context.Background()); err != nil {
+			logger.Log.Info("HTTP server Shutdown. Errors: " + err.Error())
+		}
 	}()
-	return http.ListenAndServe(config.LaunchAddress, r)
+
+	if config.EnableHTTPS {
+		return srv.ListenAndServeTLS("cert.pem", "key.pem")
+	} else {
+		return srv.ListenAndServe()
+	}
 }
 
 func createStorageFromConfig() storage.URLStorage {
@@ -54,5 +75,18 @@ func createStorageFromConfig() storage.URLStorage {
 		return storage.NewDiskStorage(config.FileStoragePath)
 	} else {
 		return storage.NewSimpleStorage()
+	}
+}
+
+func runDegugServer() {
+	go func() {
+		http.ListenAndServe(config.DebugAddress, nil)
+	}()
+}
+
+func createServer(addr string, handler http.Handler) *http.Server {
+	return &http.Server{
+		Addr:    addr,
+		Handler: handler,
 	}
 }
