@@ -58,3 +58,9 @@ func (st *DiskStorage) GetUserURLs(userID string) [][2]string {
 func (st *DiskStorage) DeleteURLs(ids []string, userID string) {
 	st.smSt.DeleteURLs(ids, userID)
 }
+
+// Реализация URLStorage интерфейса
+func (st *DiskStorage) GetStats() (int, int) {
+	// TODO
+	return 0, 0
+}

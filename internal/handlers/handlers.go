@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"net"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -32,6 +33,7 @@ func AppRouter(st storage.URLStorage) *chi.Mux {
 	r.Post("/api/shorten/batch", authMiddleware(PostManyURL))
 	r.Get("/api/user/urls", GetUserURLs)
 	r.Delete("/api/user/urls", authMiddleware(DeleteURLs))
+	r.Get("/api/internal/stats", GetStats)
 
 	return r
 }
@@ -229,4 +231,29 @@ func DeleteURLs(w http.ResponseWriter, r *http.Request) {
 	urlStorage.DeleteURLs(ids, userID)
 
 	w.WriteHeader(http.StatusAccepted)
+}
+
+// StatsResponse - ответ по статистике
+type StatsResponse struct {
+	Urls  int `json:"urls"`
+	Users int `json:"users"`
+}
+
+// GetStats возвращает количество ссылок и пользователей на сервере
+func GetStats(w http.ResponseWriter, r *http.Request) {
+	var ipStr = r.Header.Get("X-Real-IP")
+	var ip = net.ParseIP(ipStr)
+	_, ipNet, err := net.ParseCIDR(config.TrustedSubnet)
+
+	if err != nil || config.TrustedSubnet == "" || !ipNet.Contains(ip) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	var urlsCount, usersCount = urlStorage.GetStats()
+
+	var resp = StatsResponse{urlsCount, usersCount}
+	body, _ := json.Marshal(resp)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(body)
 }

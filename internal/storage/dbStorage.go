@@ -64,3 +64,8 @@ func (st *DBStorage) GetUserURLs(userID string) [][2]string {
 func (st *DBStorage) DeleteURLs(ids []string, userID string) {
 	go st.urlDB.DeleteURLs(ids, userID)
 }
+
+// Реализация URLStorage интерфейса
+func (st *DBStorage) GetStats() (int, int) {
+	return st.urlDB.GetStats()
+}
