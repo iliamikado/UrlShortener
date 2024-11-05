@@ -12,7 +12,7 @@ import (
 
 func main() {
 	// устанавливаем соединение с сервером
-	conn, _ := grpc.Dial(":8088", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, _ := grpc.NewClient(":8088", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	defer conn.Close()
 	// получаем переменную интерфейсного типа UsersClient,
 	// через которую будем отправлять сообщения

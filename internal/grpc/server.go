@@ -21,16 +21,16 @@ func RunGRPCServer(port string, st storage.URLStorage) error {
 		return err
 	}
 	s := grpc.NewServer()
-	pb.RegisterUrlShortenerServer(s, &UrlShortenerServer{})
+	pb.RegisterUrlShortenerServer(s, &URLShortenerServer{})
 	err = s.Serve(listen)
 	return err
 }
 
-type UrlShortenerServer struct {
+type URLShortenerServer struct {
 	pb.UnimplementedUrlShortenerServer
 }
 
-func (s *UrlShortenerServer) AddURL(ctx context.Context, in *pb.LongURL) (*pb.ShortURL, error) {
+func (s *URLShortenerServer) AddURL(ctx context.Context, in *pb.LongURL) (*pb.ShortURL, error) {
 
 	id, err := urlStorage.AddURL(in.Url, defaultUser)
 	if err != nil {
@@ -43,7 +43,7 @@ func (s *UrlShortenerServer) AddURL(ctx context.Context, in *pb.LongURL) (*pb.Sh
 	return &resp, nil
 }
 
-func (s *UrlShortenerServer) GetLongURL(ctx context.Context, in *pb.ShortURL) (*pb.LongURL, error) {
+func (s *URLShortenerServer) GetLongURL(ctx context.Context, in *pb.ShortURL) (*pb.LongURL, error) {
 	id := strings.TrimPrefix(in.Url, config.ResultAddress+"/")
 	longURL, err := urlStorage.GetURL(id)
 	if err != nil {
@@ -55,7 +55,7 @@ func (s *UrlShortenerServer) GetLongURL(ctx context.Context, in *pb.ShortURL) (*
 	return &resp, nil
 }
 
-func (s *UrlShortenerServer) PostManyURL(ctx context.Context, in *pb.PostManyURLRequest) (*pb.PostManyURLResponse, error) {
+func (s *URLShortenerServer) PostManyURL(ctx context.Context, in *pb.PostManyURLRequest) (*pb.PostManyURLResponse, error) {
 	longURLs := make([]string, len(in.ReqItems))
 	for i, item := range in.ReqItems {
 		longURLs[i] = item.OriginalUrl
