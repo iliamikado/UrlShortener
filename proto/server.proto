@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package grpc_server;
+
+option go_package = "grpc_server/proto";
+
+message LongURL {
+  string url = 1;
+}
+
+message ShortURL {
+  string url = 1;
+}
+
+message PostManyURLRequest {
+  message RequestBatchItem {
+    string correlation_id = 1;
+    string original_url = 2;
+  }
+  repeated RequestBatchItem req_items = 1;
+}
+
+message PostManyURLResponse {
+  message ResponseBatchItem {
+    string correlation_id = 1;
+    string short_url = 2;
+  }
+  repeated ResponseBatchItem res_items = 1;
+}
+
+service UrlShortener {
+  rpc AddURL(LongURL) returns (ShortURL);
+  rpc GetLongURL(ShortURL) returns (LongURL);
+  rpc PostManyURL(PostManyURLRequest) returns (PostManyURLResponse);
+}

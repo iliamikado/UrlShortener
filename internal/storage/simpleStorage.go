@@ -70,3 +70,8 @@ func (st *SimpleStorage) GetUserURLs(userID string) [][2]string {
 func (st *SimpleStorage) DeleteURLs(ids []string, userID string) {
 	// TODO
 }
+
+// Реализация URLStorage интерфейса
+func (st *SimpleStorage) GetStats() (int, int) {
+	return len(st.m), len(st.usersURLs)
+}

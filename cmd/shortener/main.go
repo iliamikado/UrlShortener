@@ -13,6 +13,7 @@ import (
 
 	"github.com/iliamikado/UrlShortener/internal/config"
 	"github.com/iliamikado/UrlShortener/internal/db"
+	"github.com/iliamikado/UrlShortener/internal/grpc"
 	"github.com/iliamikado/UrlShortener/internal/handlers"
 	"github.com/iliamikado/UrlShortener/internal/logger"
 	"github.com/iliamikado/UrlShortener/internal/storage"
@@ -48,6 +49,7 @@ func run() error {
 	logger.Log.Info("Running server", zap.String("address", config.LaunchAddress))
 
 	runDegugServer()
+	go grpc.RunGRPCServer(":8088", urlStorage)
 
 	var srv = createServer(config.LaunchAddress, r)
 

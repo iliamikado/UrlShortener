@@ -133,6 +133,17 @@ func (urlDB *URLShortenerDB) DeleteURLs(ids []string, userID string) {
 	tx.Commit()
 }
 
+// GetStats - возвращает количество ссылок и пользователей
+func (urlDB *URLShortenerDB) GetStats() (int, int) {
+	row := urlDB.db.QueryRow("select count(1) from urls")
+	var urls int
+	row.Scan(&urls)
+	row = urlDB.db.QueryRow("select count(1) from users group by user_id")
+	var users int
+	row.Scan(&users)
+	return urls, users
+}
+
 // Close - функция закрывающая связь с БД
 func (urlDB *URLShortenerDB) Close() {
 	urlDB.db.Close()

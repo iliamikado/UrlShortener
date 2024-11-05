@@ -25,6 +25,8 @@ var (
 	EnableHTTPS bool
 	// ConfigFile - название файла с конфигом
 	ConfigFile string
+	// TrustedSubnet - строковое представление бесклассовой адресации
+	TrustedSubnet string
 )
 
 // FileConfig - формат конфиг файла
@@ -34,6 +36,7 @@ type FileConfig struct {
 	FileStoragePath string `json:"file_storage_path"`
 	DatabaseDsn     string `json:"database_dsn"`
 	EnableHTTPS     bool   `json:"enable_https"`
+	TrustedSubnet   string `json:"trusted_subnet"`
 }
 
 // ParseConfig - чтение конфига из флагов и переменных окружения
@@ -46,6 +49,7 @@ func ParseConfig() {
 	flag.StringVar(&DebugAddress, "g", "localhost:8081", "Set debug address")
 	flag.BoolVar(&EnableHTTPS, "s", false, "Enable https")
 	flag.StringVar(&ConfigFile, "c", "", "Set config file")
+	flag.StringVar(&TrustedSubnet, "t", "", "Set CIDR")
 	flag.Parse()
 
 	if configFile := os.Getenv("CONFIG"); configFile != "" {
@@ -72,6 +76,9 @@ func ParseConfig() {
 		if flag.Lookup("s") == nil {
 			EnableHTTPS = configData.EnableHTTPS
 		}
+		if flag.Lookup("t") == nil {
+			TrustedSubnet = configData.TrustedSubnet
+		}
 	}
 
 	if serverAddress := os.Getenv("SERVER_ADDRESS"); serverAddress != "" {
@@ -91,5 +98,8 @@ func ParseConfig() {
 	}
 	if enableHTTPS := os.Getenv("ENABLE_HTTPS"); enableHTTPS == "true" {
 		EnableHTTPS = true
+	}
+	if trustedSubnet := os.Getenv("TRUSTED_SUBNET"); trustedSubnet != "" {
+		TrustedSubnet = trustedSubnet
 	}
 }
